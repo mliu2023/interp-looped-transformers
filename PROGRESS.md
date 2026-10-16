@@ -1,5 +1,18 @@
 # Progress — 2026-10-16
 
+CUDA recovery update: user-supplied evidence shows real Slurm job **7489067**
+failed before model loading on gpu2261: torch 2.12.1+cu130 requires a newer driver
+than the reported CUDA 12.9 driver API. The reported allocation lasted 17 seconds;
+actual GPU-hour accounting must come from the saved scheduler ledger and sacct,
+not this transcription. Bootstrap now pins the official CUDA 12.6 builds of the
+same torch/torchvision releases. A separate recovery profile preserves the original
+environment, immutable snapshot, failure evidence and shared resource ledger,
+and requires fresh parity. **116 CPU tests passed**, including accounting failures
+and recovery snapshot isolation; output is saved in
+`evidence/cluster/cuda-recovery-tests.txt`. See `docs/CUDA_RECOVERY.md`. Compatibility of that
+candidate build, model loading, numerical audit and all scientific GPU results
+remain pending. Earlier setup status and test counts below are historical.
+
 GitHub handoff update: added the executable Brown setup helper and one-command
 managed Python 3.12 bootstrap, exact 3.0 MiB dataset archive, and complete
 `docs/BROWN_QUICKSTART.md` through discovery. Installation, staging and freezing
@@ -22,8 +35,9 @@ Slurm subset passes 26 tests; no real job was submitted. See
 `configs/cluster.brown.env.example` and runbook section 2.
 
 This is a partial execution at an external compute-access boundary. There are
-**no fresh LoopVL model measurements or scientific conclusions**. No real Slurm
-job was submitted. Model outcomes are not inferred from synthetic fixtures.
+**no fresh LoopVL model measurements or scientific conclusions**. The only reported
+real Slurm job failed at CUDA initialization. Model outcomes are not inferred from
+synthetic fixtures.
 
 ## Completed on available CPU resources
 

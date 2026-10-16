@@ -1,7 +1,9 @@
 # Clone and run on Brown/Oscar
 
-This is the complete runnable path through discovery. No GPU stage has yet been
-verified on Oscar. Stop after discovery: causal collection and remaining analysis
+This is the complete runnable path through discovery. Job 7489067 reached an
+Oscar GPU but failed CUDA initialization before any model inference. Follow the
+[CUDA recovery instructions](CUDA_RECOVERY.md) if you used the original setup.
+No model GPU stage has yet passed. Stop after discovery: causal collection and remaining analysis
 control orchestration are unfinished, and confirmation must await a real protocol
 lock. The scheduler rejects missing gates; never edit gate files to bypass them.
 
@@ -40,8 +42,8 @@ This script never submits a job or loads model weights. It:
 
 1. Creates a user-space bootstrap environment and installs pinned `uv==0.13.1`.
 2. Obtains a managed Python 3.12 interpreter, avoiding guessed module names.
-3. Creates `REUSE_BASE/venv`, installs the official exact torch 2.12.1 /
-   torchvision 0.27.1 pair and pinned runtime requirements, and installs this
+3. Creates `REUSE_BASE/venv`, installs the official exact torch 2.12.1+cu126 /
+   torchvision 0.27.1+cu126 pair and pinned runtime requirements, and installs this
    project's CPU/plotting dependencies.
 4. Clones official LoopVL at the audited commit, downloads the complete pinned
    model snapshot once, and verifies every configured checkpoint byte hash.
@@ -51,13 +53,15 @@ This script never submits a job or loads model weights. It:
 7. Creates `cluster.env`, a dependency lock, staging evidence, and an immutable
    `snapshot/`, preserving original Git/source provenance and absolute data paths.
 
-The default package index is PyPI. The verified release metadata identifies the
-Linux torch 2.12.1 wheel's CUDA 13 dependencies; actual driver compatibility is
-checked in the first GPU allocation. If CCV requires another approved wheel index,
-set `REUSE_TORCH_INDEX_URL` before running setup. Versions are never silently
-replaced. No drivers or system packages are modified. See
-[PyTorch's release metadata](https://pypi.org/pypi/torch/2.12.1/json),
-[torchvision's matching release](https://pypi.org/pypi/torchvision/0.27.1/json), and
+The default package index is `https://download.pytorch.org/whl/cu126`, with explicit
+`+cu126` version pins. Job 7489067 established that the original PyPI CUDA 13 build
+cannot initialize on gpu2261's reported CUDA 12.9 driver API. PyTorch documents
+the same public releases with CUDA 12.6; actual operators and model parity must
+still pass in the first GPU allocation. If CCV requires another approved build,
+set `REUSE_TORCH_INDEX_URL`, `REUSE_TORCH_VERSION`, and
+`REUSE_TORCHVISION_VERSION` together before setup. No drivers or system packages
+are modified. See [PyTorch's official installation commands](https://pytorch.org/get-started/previous-versions/),
+[NVIDIA compatibility guidance](https://docs.nvidia.com/deploy/cuda-compatibility/minor-version-compatibility.html), and
 [uv's managed Python documentation](https://docs.astral.sh/uv/guides/install-python/).
 
 If site policy requires modules/a provided Python, use the individual setup phases
@@ -91,8 +95,10 @@ failed download:
 
 An existing frozen environment is not overwritten. Source updates remain in
 `source/`; queued jobs read only `snapshot/`. Future code/environment updates
-need a fresh base/snapshot and appropriate new parity evidence. Never edit a
-snapshot after submitting jobs against it.
+need a fresh environment/snapshot and appropriate new parity evidence. Preserve
+the original run root and scheduler ledger across replacements so failed jobs and
+retries retain their cost. The [CUDA recovery helper](CUDA_RECOVERY.md) does this
+within the existing base. Never edit a snapshot after submitting jobs against it.
 
 ## 3. Activate and submit the single numerical smoke
 
@@ -121,6 +127,9 @@ python "$REUSE_PROJECT_DIR/scripts/slurm/submit.py" account --refresh
 cat "$REUSE_RUN_ROOT/loopvl-transfer-v1/parity_report.json"
 cat "$REUSE_RUN_ROOT/loopvl-transfer-v1/gates.json"
 ```
+
+The recovery profile uses run ID `loopvl-transfer-v1-cu126`; substitute that in
+all result paths below. Submission commands read the new ID from frozen configs.
 
 Logs are `$REUSE_RUN_ROOT/logs/JOB_ID.out` and `.err`. Preflight evidence is under
 `$REUSE_RUN_ROOT/preflight/`. Require `parity.passed=true`, valid preflight, and

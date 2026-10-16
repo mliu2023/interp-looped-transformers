@@ -59,6 +59,9 @@ def study_fingerprint(config):
             "generation_budget", "neurons_per_layer", "state_layers", "primary_invocations", "numerical", "descriptor_policy")
     identity = {key: config[key] for key in keys}
     identity["runtime"] = "official mixed BF16-FP32; SDPA; batch1; H2L3; no dtype override"
+    # Environment recovery gets independent gates while preserving legacy IDs.
+    if "runtime_variant" in config:
+        identity["runtime_variant"] = config["runtime_variant"]
     return digest(identity)
 
 

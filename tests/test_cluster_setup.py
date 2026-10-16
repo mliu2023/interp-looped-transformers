@@ -29,6 +29,9 @@ class ClusterSetupTests(unittest.TestCase):
         (self.source / 'scripts/slurm').mkdir(parents=True)
         (self.source / 'configs').mkdir()
         shutil.copy2(ROOT / 'scripts/slurm/freeze.py', self.source / 'scripts/slurm/freeze.py')
+        shutil.copy2(ROOT / 'scripts/slurm/submit.py', self.source / 'scripts/slurm/submit.py')
+        (self.source / 'src/reuseinterp').mkdir(parents=True)
+        shutil.copy2(ROOT / 'src/reuseinterp/io.py', self.source / 'src/reuseinterp/io.py')
         config = json.loads((ROOT / 'configs/smoke.yaml').read_text())
         for name in setup.STAGES:
             (self.source / 'configs' / (name + '.yaml')).write_text(json.dumps(config))
@@ -243,6 +246,165 @@ class ClusterSetupTests(unittest.TestCase):
         self.assertTrue((snapshot / 'source_provenance.json').is_file())
         with self.assertRaisesRegex(ValueError, 'already frozen'):
             setup.freeze(argparse.Namespace(), state)
+
+    def recovery_fixture(self):
+        state = self.configure()
+        lock = self.root / 'original-dependencies.lock'
+        lock.write_text('fixture-package==1.0\n')
+        subprocess.run([sys.executable, str(ROOT / 'scripts/slurm/freeze.py'),
+                        '--source', str(self.source), '--destination', state['environment']['REUSE_PROJECT_DIR'],
+                        '--dependency-lock', str(lock)], check=True, capture_output=True, text=True)
+        state.update(installed=True, staged=True, frozen=True,
+                     snapshot_sha256=setup.freeze_module(self.source).verify(state['environment']['REUSE_PROJECT_DIR']))
+        state['environment']['REUSE_CACHE_READY'] = '1'
+        setup.persist(state)
+        (self.base / 'staging-evidence.json').write_text('{"original":true}\n')
+        run_root = Path(state['environment']['REUSE_RUN_ROOT'])
+        (run_root / 'scheduler-accounting').mkdir(parents=True)
+        accounting = run_root / 'scheduler-accounting/original.sacct.txt'
+        accounting.write_text('7489067|FAILED|8|gres/gpu=1\n')
+        ledger = {'schema_version': 1, 'gpu_hour_cap': 30,
+                  'jobs': [{'job_id': '7489067', 'kind': 'gpu', 'stage': 'validate',
+                            'num_shards': 1, 'wall_seconds': 3600, 'tasks': {
+                                '0': {'state': 'FAILED', 'elapsed_seconds': 8, 'allocated_gpus': 1}}}],
+                  'accounting_history': [{'source': str(accounting), 'sha256': setup.sha(accounting)}]}
+        ledger_path = run_root / 'scheduler_ledger.json'
+        setup.save_json(ledger_path, ledger)
+        (run_root / 'preflight').mkdir()
+        setup.save_json(run_root / 'preflight/7489067_single.json', {
+            'slurm_job_id': '7489067', 'status': 'failed', 'cuda_available': False,
+            'torch_version': '2.12.1+cu130', 'cuda_runtime': '13.0'})
+        return state, ledger, ledger_path
+
+    def recovery_args(self, **kwargs):
+        values = {'name': 'cu126', 'failed_job_id': '7489067',
+                  'torch_index_url': 'https://download.pytorch.org/whl/cu126',
+                  'torch_version': '2.12.1+cu126', 'torchvision_version': '0.27.1+cu126'}
+        values.update(kwargs)
+        return argparse.Namespace(**values)
+
+    def test_recovery_requires_reconciled_terminal_gpu_jobs(self):
+        state, ledger, path = self.recovery_fixture()
+        evidence = setup.recovery_accounting(state, '7489067')
+        self.assertAlmostEqual(evidence['budget_at_recovery']['consumed_gpu_hours'], 8 / 3600)
+        ledger['jobs'][0]['tasks']['0']['state'] = 'RUNNING'
+        setup.save_json(path, ledger)
+        with self.assertRaisesRegex(ValueError, 'Outstanding or unreconciled'):
+            setup.recover(self.recovery_args(), state)
+        self.assertFalse((self.base / 'setup-state-cu126.json').exists())
+
+    def test_recovery_rejects_missing_or_changed_accounting_evidence(self):
+        state, ledger, path = self.recovery_fixture()
+        history = ledger.pop('accounting_history')
+        setup.save_json(path, ledger)
+        with self.assertRaisesRegex(ValueError, 'Refresh accounting first'):
+            setup.recovery_accounting(state, '7489067')
+        ledger['accounting_history'] = history
+        setup.save_json(path, ledger)
+        Path(history[0]['source']).write_text('changed')
+        with self.assertRaisesRegex(ValueError, 'missing or changed'):
+            setup.recovery_accounting(state, '7489067')
+
+    def test_recovery_rejects_exhausted_budget_without_resetting_ledger(self):
+        state, ledger, path = self.recovery_fixture()
+        ledger['jobs'][0]['tasks']['0']['elapsed_seconds'] = 108000
+        accounting = Path(ledger['accounting_history'][0]['source'])
+        accounting.write_text('7489067|FAILED|108000|gres/gpu=1\n')
+        ledger['accounting_history'][0]['sha256'] = setup.sha(accounting)
+        setup.save_json(path, ledger)
+        original_bytes = path.read_bytes()
+        with self.assertRaisesRegex(ValueError, 'no room for recovery'):
+            setup.recover(self.recovery_args(), state)
+        self.assertEqual(path.read_bytes(), original_bytes)
+        self.assertFalse((self.base / 'setup-state-cu126.json').exists())
+
+    def test_recovery_requires_preserved_cuda13_failure_and_exact_cuda126_pins(self):
+        state, ledger, path = self.recovery_fixture()
+        with self.assertRaisesRegex(ValueError, r'exact \+cu126'):
+            setup.recover(self.recovery_args(torch_version='2.12.1'), state)
+        preflight = Path(state['environment']['REUSE_RUN_ROOT']) / 'preflight/7489067_single.json'
+        data = json.loads(preflight.read_text())
+        data['status'] = 'passed'
+        setup.save_json(preflight, data)
+        with self.assertRaisesRegex(ValueError, 'expected CUDA 13'):
+            setup.recover(self.recovery_args(), state)
+        self.assertFalse((self.base / 'setup-state-cu126.json').exists())
+
+    def test_recovery_build_preserves_prior_snapshot_assets_and_budget(self):
+        state, ledger, ledger_path = self.recovery_fixture()
+        original_state = (self.base / 'setup-state.json').read_bytes()
+        original_env = (self.base / 'cluster.env').read_bytes()
+        original_evidence = (self.base / 'staging-evidence.json').read_bytes()
+        original_ledger = ledger_path.read_bytes()
+        original_snapshot = state['snapshot_sha256']
+        old_venv = Path(state['environment']['REUSE_ENV_DIR'])
+        old_venv.mkdir()
+        (old_venv / 'preserved.txt').write_text('original CUDA13 environment')
+        def installed(args, recovered):
+            self.assertEqual(args.torch_version, '2.12.1+cu126')
+            self.assertEqual(args.torchvision_version, '0.27.1+cu126')
+            self.assertFalse(Path(recovered['environment']['REUSE_ENV_DIR']).exists())
+            self.assertEqual(recovered['environment']['REUSE_ENV_DIR'], str(self.base / 'venv-cu126'))
+            recovered['installed'] = True
+            recovered['torch_pair'] = {'torch': args.torch_version, 'torchvision': args.torchvision_version, 'cuda_runtime': '12.6'}
+            setup.persist(recovered)
+        def runner(actual_state, command, **kwargs):
+            argv = list(map(str, command))
+            if 'freeze.py' in argv[1]:
+                return subprocess.run([sys.executable] + argv[1:], check=True, capture_output=True, text=True).stdout
+            if 'freeze' in argv:
+                return 'torch==2.12.1+cu126\ntorchvision==0.27.1+cu126\n'
+            if 'rev-parse' in argv:
+                return 'a' * 40 + '\n'
+            return ''
+        with patch.object(setup, 'install', side_effect=installed), patch.object(setup, 'verify_staged', return_value={}):
+            with patch.object(setup, 'extract_dataset') as extractor, patch.object(setup, 'run', side_effect=runner):
+                with contextlib.redirect_stdout(io.StringIO()):
+                    recovered = setup.recover(self.recovery_args(), state)
+        extractor.assert_not_called()
+        self.assertEqual((self.base / 'setup-state.json').read_bytes(), original_state)
+        self.assertEqual((self.base / 'cluster.env').read_bytes(), original_env)
+        self.assertEqual((self.base / 'staging-evidence.json').read_bytes(), original_evidence)
+        self.assertEqual(ledger_path.read_bytes(), original_ledger)
+        self.assertEqual((old_venv / 'preserved.txt').read_text(), 'original CUDA13 environment')
+        self.assertEqual(setup.freeze_module(self.source).verify(state['environment']['REUSE_PROJECT_DIR']), original_snapshot)
+        self.assertEqual(setup.load_state(self.base, 'cu126'), recovered)
+        self.assertEqual(recovered['environment']['REUSE_RUN_ROOT'], state['environment']['REUSE_RUN_ROOT'])
+        for name in ('REUSE_MODEL_DIR', 'REUSE_DATASET_DIR', 'REUSE_LOOPVL_DIR', 'REUSE_CACHE_ROOT'):
+            self.assertEqual(recovered['environment'][name], state['environment'][name])
+        old_config = json.loads((self.source / 'configs/smoke.yaml').read_text())
+        for name in setup.STAGES:
+            config = json.loads((self.base / 'snapshot-cu126/configs' / (name + '.yaml')).read_text())
+            self.assertEqual(config['run_id'], old_config['run_id'] + '-cu126')
+            self.assertNotEqual(config['study_fingerprint'], old_config['study_fingerprint'])
+            self.assertEqual(config['checkpoint_hashes'], old_config['checkpoint_hashes'])
+            self.assertEqual(config['dataset_hash'], old_config['dataset_hash'])
+            self.assertEqual(config['runtime_variant']['cuda_runtime'], '12.6')
+        new_run = Path(recovered['environment']['REUSE_RUN_ROOT']) / (old_config['run_id'] + '-cu126')
+        self.assertFalse((new_run / 'gates.json').exists())
+        with self.assertRaisesRegex(ValueError, 'profile already exists'):
+            setup.recover(self.recovery_args(), state)
+
+    def test_recovery_install_rejects_final_runtime_or_build_mismatch(self):
+        state = self.configure()
+        args = self.recovery_args()
+        state['runtime_variant'] = {'profile': args.name, 'torch': args.torch_version,
+            'torchvision': args.torchvision_version, 'cuda_runtime': '12.6', 'torch_index_url': args.torch_index_url}
+        state['profile'] = 'cu126'
+        state['env_file'] = str(self.base / 'cluster-cu126.env')
+        state['environment']['REUSE_ENV_DIR'] = str(self.base / 'venv-cu126')
+        install_args = self.install_args(torch_version=args.torch_version,
+            torchvision_version=args.torchvision_version, torch_index_url=args.torch_index_url)
+        wrong_pair = {'torch': '2.12.1+cu130', 'torchvision': '0.27.1+cu130', 'cuda_runtime': '13.0'}
+        def runner(actual_state, command, **kwargs):
+            return json.dumps(wrong_pair) if '-c' in command else ''
+        with patch.object(setup, 'check_platform', return_value={'system': 'Linux', 'version': [3, 12, 1]}):
+            with patch.object(setup, 'official_source', return_value=self.base / 'LoopVL'):
+                with patch.object(setup, 'run', side_effect=runner):
+                    with self.assertRaisesRegex(ValueError, 'differs from declared CUDA build'):
+                        setup.install(install_args, state)
+        self.assertFalse(setup.load_state(self.base, 'cu126')['installed'])
+        self.assertEqual(state['environment']['REUSE_CACHE_READY'], '0')
 
     def test_freeze_refuses_credentials_in_dependency_lock(self):
         state = self.configure()

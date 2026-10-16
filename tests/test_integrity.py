@@ -113,6 +113,22 @@ class IntegrityTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Mandatory controls"):
                 create_lock(Path(d) / "lock.json", protocol, gates)
 
+    def test_recovered_runtime_requires_independent_study_identity(self):
+        from reuseinterp.io import study_fingerprint, config_load
+        import json
+        config = json.loads((Path(__file__).parents[1] / "configs/smoke.yaml").read_text())
+        self.assertEqual(study_fingerprint(config), config["study_fingerprint"])
+        config["runtime_variant"] = {"profile": "cu126", "torch": "2.12.1+cu126"}
+        self.assertNotEqual(study_fingerprint(config), config["study_fingerprint"])
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / "recovered.json"
+            atomic_json(p, config)
+            with self.assertRaisesRegex(ValueError, "identity changed"):
+                config_load(p)
+            config["study_fingerprint"] = study_fingerprint(config)
+            atomic_json(p, config)
+            self.assertEqual(config_load(p), config)
+
 
 if __name__ == "__main__":
     unittest.main()

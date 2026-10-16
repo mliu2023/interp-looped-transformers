@@ -1,0 +1,18 @@
+{
+  "status": "CPU_tested_cluster_pending",
+  "tests_run": 109,
+  "failures": 0,
+  "errors": 0,
+  "scope": "unit, synthetic hooks/analysis, setup stubs and fake scheduler; no real install, GPU or job submission",
+  "checks": [
+    "shell syntax",
+    "Python compilation",
+    "safe dataset archive extraction",
+    "full packaged dataset validation against pinned hash",
+    "saved synthetic raw metric verification"
+  ],
+  "dataset_archive_sha256": "980876200895cefae2381c9a91814744aa014bb93d6d0dc4131f9afbfd287ecd",
+  "entrypoint": "bash scripts/brown_setup.sh /absolute/shared/study-directory",
+  "guide": "docs/BROWN_QUICKSTART.md",
+  "real_job_ids": []
+}

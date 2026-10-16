@@ -1,0 +1,1 @@
+{"config":"configs/cpu.yaml","data_hash":"dfcde509648a7da4bac4c0ceaf926eaa927c9649da9e590cd3d7990f7a4ff27a","definition":"reuseinterp.io.study_fingerprint","fingerprint":"b9afb3e5e04fbf4a6560e72909cd5829ca027ac0eda07453d70e47ee37ef9446","runtime":"official mixed BF16-FP32; SDPA; batch1; H2L3; no dtype override"}

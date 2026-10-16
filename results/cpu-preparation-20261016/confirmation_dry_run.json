@@ -1,0 +1,13 @@
+{
+  "stage": "confirm",
+  "run_dir": "results/loopvl-transfer-v1",
+  "config_hash": "5601715cfd7ce613f7a138bfb2db704cde506d427e5908bdf657965ad9cc10b9",
+  "shard_index": 0,
+  "num_shards": 1,
+  "resource_estimates": {
+    "forwards": "pending locked candidates and timing pilot",
+    "storage_bytes": 4000000000
+  },
+  "gpu_hours_cap": 30,
+  "will_execute": false
+}

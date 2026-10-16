@@ -1,0 +1,4 @@
+# Exact versions used to generate the saved 2D images/CPU fixture evidence.
+# Python 3.9.13; PyTorch 2.8.0 used only for optional synthetic hook tests.
+numpy==1.26.4
+Pillow==9.2.0

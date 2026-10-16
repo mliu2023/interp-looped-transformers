@@ -1,0 +1,4 @@
+# Preserve supplied inputs and generated evidence without whitespace rewrites.
+CODEX_PLAN.md -whitespace
+evidence/** -whitespace
+results/** -whitespace

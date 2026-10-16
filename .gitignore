@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+cluster-dependencies.lock
+vendor/
+configs/cluster.local.env
+configs/site_environment.sh
+datasets/
+results/*/shards/
+*.lock.tmp
+*.partial
+.DS_Store

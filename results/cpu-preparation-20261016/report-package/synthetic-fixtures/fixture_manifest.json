@@ -1,0 +1,36 @@
+{
+  "confidence": 0.9833333333333333,
+  "fixed_weight_sha256": "cf880bf35607f6dcebb12fb8cb4898ad0b2499931b1ee62c590826126b507455",
+  "fixture_names": [
+    "stable_latent_meaning",
+    "positive_gain_offset",
+    "sign_reversal",
+    "changed_upstream_fixed_weights",
+    "changed_downstream_reader",
+    "different_continuation_lengths"
+  ],
+  "n_resamples": 2000,
+  "noise_sd": 0.025,
+  "not_model_results": true,
+  "penalties": [
+    0.01,
+    0.1,
+    1.0,
+    10.0
+  ],
+  "primary_passes": [
+    "L1",
+    "L4"
+  ],
+  "raw_file": "raw_synthetic.npz",
+  "scope": "Software validation on synthetic fixed neurons; no empirical claim about LoopVL.",
+  "seed": 314159,
+  "split_independent_families": {
+    "calibration": 64,
+    "confirmation": 128,
+    "development": 64,
+    "fit": 128
+  },
+  "synthetic": true,
+  "variance_floor": 1e-08
+}

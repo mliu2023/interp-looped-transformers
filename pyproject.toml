@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "reuseinterp"
+version = "0.1.0"
+description = "Auditable semantic and causal transfer measurements under recurrent weight reuse"
+requires-python = ">=3.9"
+dependencies = ["numpy>=1.24,<3", "Pillow>=9.2"]
+
+[project.optional-dependencies]
+plots = ["matplotlib>=3.5"]
+hooks = ["torch>=2.8"]
+
+[project.scripts]
+reuseinterp = "reuseinterp.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

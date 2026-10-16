@@ -1,0 +1,30 @@
+{
+  "status": "DRAFT_NOT_LOCKED",
+  "confirmation_opened": false,
+  "reason": "Loaded-model numerical audit, capability, discovery selection, runtime tolerances and pilot causal margin unavailable",
+  "planned_endpoints": {
+    "P1": "layer-balanced positive-affine semantic-description transfer gap L1/L4, object pooled",
+    "P2": "bidirectional within-target minus cross-pass color balanced accuracy; development-selected physical site",
+    "P3": "gain-adjusted simultaneous causal pass-by-context contrasts; skipped only with documented discovery reason"
+  },
+  "planned_margins": {
+    "P1_nmse": 0.05,
+    "P1_sensitivity": [
+      0.02,
+      0.1
+    ],
+    "P2_balanced_accuracy": 0.05,
+    "P3_log_score_units": null
+  },
+  "planned_statistics": {
+    "resampling": "whole scene families",
+    "resamples": 2000,
+    "confidence": 0.9833333333333333,
+    "multiplicity_endpoint_families": 3
+  },
+  "resource_cap": {
+    "gpu_hours": 30,
+    "output_gib": 20
+  },
+  "immutable_lock_destination": "results/<run_id>/protocol_lock.json"
+}

@@ -1,0 +1,1 @@
+{"model_examples":0,"passed":false,"reason":"No local CUDA; Brown noninteractive SSH rejected. Synthetic numerical tests are separate engineering evidence.","status":"pending_gpu"}

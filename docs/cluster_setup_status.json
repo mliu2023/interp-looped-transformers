@@ -1,0 +1,98 @@
+{
+  "source": "User-supplied live scontrol, sacctmgr and sinfo output; not independently queried by the agent",
+  "user": "mliu171",
+  "gpu_debug_partition": {
+    "name": "gpu-debug",
+    "state": "UP",
+    "default_time": "00:05:00",
+    "max_time": "UNLIMITED",
+    "reported_nodes": 74,
+    "reported_gpus": 580
+  },
+  "gpu_debug_qos": {
+    "name": "gpu-debug",
+    "max_wall": "01:00:00",
+    "max_tres_per_user": {
+      "cpu": 8,
+      "gpu": 4,
+      "host_mem": "96G"
+    }
+  },
+  "observed_gpu_gres_types": [
+    "quadro_rtx_6000",
+    "nvidia_rtx_a6000",
+    "nvidia_a40",
+    "nvidia_geforce_rtx_3090",
+    "a5500",
+    "nvidia_rtx_a5000",
+    "l40s",
+    "h100"
+  ],
+  "selected_smoke_request": {
+    "partition": "gpu-debug",
+    "account": "default",
+    "qos": "gpu-debug",
+    "gres": "gpu:nvidia_rtx_a6000:1",
+    "cpus": 8,
+    "host_mem": "32G",
+    "time": "01:00:00"
+  },
+  "associations": [
+    {
+      "account": "batch2",
+      "partition": "batch2",
+      "qos": "batch2"
+    },
+    {
+      "account": "brubenst-condo",
+      "partition": "batch",
+      "qos": "brubenst-condo"
+    },
+    {
+      "account": "brubenst-condo",
+      "partition": "gpu-he",
+      "qos": "brubenst-gcondo"
+    },
+    {
+      "account": "default",
+      "partition": "batch",
+      "qos": "normal"
+    },
+    {
+      "account": "default",
+      "partition": "debug",
+      "qos": "debug"
+    },
+    {
+      "account": "default",
+      "partition": "gpu-debug",
+      "qos": "gpu-debug"
+    },
+    {
+      "account": "default",
+      "partition": "gpu",
+      "qos": "norm-gpu"
+    },
+    {
+      "account": "default",
+      "partition": "vnc",
+      "qos": "vnc"
+    },
+    {
+      "account": "gpu-scavenger",
+      "partition": "gpu-scavenger",
+      "qos": "gpu-scavenger"
+    }
+  ],
+  "pending": [
+    "shared paths",
+    "storage quota and purge policy",
+    "Python/module setup",
+    "CUDA/driver/runtime compatibility",
+    "complete offline cache",
+    "immutable snapshot",
+    "scheduled GPU validation"
+  ],
+  "model_feasibility": "unmeasured",
+  "real_job_ids": []
+}

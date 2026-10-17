@@ -1,0 +1,74 @@
+{
+  "files": {
+    "REPORT.md": {
+      "bytes": 7893,
+      "sha256": "9dcbc8dc7457c516c68446db02432f327930db59adcca1986cf0d98f072f37bd"
+    },
+    "capture_index.json": {
+      "bytes": 388376,
+      "sha256": "caa8556dc2d56cb9699e6872fd776e3124c303db5c09c0a6b8715a0121fcd995"
+    },
+    "capture_validation.json": {
+      "bytes": 10072,
+      "sha256": "9769e468a39e4d25567c975d0b330dd3a9a670a9ab89850dbe220a0efcf7cdd6"
+    },
+    "execution_state.json": {
+      "bytes": 270,
+      "sha256": "c0866ff66b6b6abf76a4ee53a81e25ca5e3802b770d0ba7451250248741102f0"
+    },
+    "image_rows.json": {
+      "bytes": 92569,
+      "sha256": "a4a9f8810b4ca3a01028617dd43b6d8ec6dc252e1acd429696e820fa0f02f64d"
+    },
+    "loaded_architecture_audit.json": {
+      "bytes": 27992,
+      "sha256": "e634701e4d89adc564abffedb769935193876b832a9a13932f0feae7cd2bbccf"
+    },
+    "per_neuron.csv": {
+      "bytes": 12852,
+      "sha256": "882125881ebe6b33b876f4a31e1ee93921762288cbee427e2a2cf86488dcb27a"
+    },
+    "pooled_measurements.npz": {
+      "bytes": 701794,
+      "sha256": "7689c515bdd8345e74a79c3e56fd624569260fe3276881bc65efe61773cd62fc"
+    },
+    "protocol.json": {
+      "bytes": 2088,
+      "sha256": "ad41c199fc3fb96169ed06f0402c4ea8a8f31589726c947af4a22f4956585d9c"
+    },
+    "resources.json": {
+      "bytes": 1753,
+      "sha256": "994d74ca096d37ec007e564a2281c3fc0e6cbdeaa8937f073974e4cfcffe4d4a"
+    },
+    "scheduler_accounting.json": {
+      "bytes": 128,
+      "sha256": "e4fe276eac4cd2d94041217120cd93854ed00307862989c1167a5a13e411c2c2"
+    },
+    "source_manifest.json": {
+      "bytes": 92665,
+      "sha256": "45685949a231f758352ff272d11a9af0ff5b87e9e4bdc2dd0ad57e06661c565f"
+    },
+    "source_manifest_original.json": {
+      "bytes": 93311,
+      "sha256": "a668b71200d2d433352b8c3ee702402e58a9537fccc131db3f8e21d5177ad7b6"
+    },
+    "study.json": {
+      "bytes": 266,
+      "sha256": "a237e3127d59f3efafc2596f22b375bc0ad522f907cb68a8a4a0c9a17d80a09e"
+    },
+    "summary.json": {
+      "bytes": 34598,
+      "sha256": "199b36c5b28a2946f13832908eabe1649eec31c2c133bbefac90ebb5c4b327a6"
+    },
+    "verification.json": {
+      "bytes": 384,
+      "sha256": "0ec0d42a3e8672c471c6146dacd0a3aac1524a0bc893c018760377d1d4fe2dc6"
+    },
+    "viewer_validation.json": {
+      "bytes": 1197,
+      "sha256": "14dbd8b26bb1a0319f9c1cb9b7e2cae01f7bed05456007f237e856041d278ea0"
+    }
+  },
+  "full_cluster_run": "/oscar/home/mliu171/reuseinterp-loopvl/runs/loopvl-training-source-photos-20261017-v1",
+  "images_and_raw_captures_included": false
+}

@@ -10,7 +10,7 @@ Source evidence, original image hashes, the exact prompt, capture-validation evi
 
 ## Current rerun
 
-The 64-image source pool is staged. Timing job `7522110` and dependent pipeline job `7522111` have been submitted. The pipeline validates measured feasibility, submits the full capture, then schedules verification and viewer startup. Failures stop the chain and remain in the saved state; there is no automatic GPU retry. The [setup report](../results/viewer-setup-20261017/REPORT.md) records completed checks and current limitations.
+The 64-image capture completed in GPU job `7522738`. CPU job `7522739` verified the original images and raw arrays, recomputed the statistics, exported the bundle, and passed Chromium checks on the real-image viewer. Viewer job `7523389` serves that bundle. The default local port is **8766**. See the [experiment report](../results/training-images-20261017/REPORT.md); the earlier [setup report](../results/viewer-setup-20261017/REPORT.md) preserves launch history.
 
 On Oscar, use this exact command for the saved status and connection instructions:
 
@@ -19,7 +19,7 @@ python /oscar/home/mliu171/reuseinterp-loopvl/source/scripts/viewer_connection.p
   --experiment-dir /oscar/home/mliu171/reuseinterp-loopvl/experiments/loopvl-training-images-20261017
 ```
 
-Before the controller starts, the helper reads `queued_state.json`; afterward it prefers `pipeline_state.json`. The scientific report is generated at `/oscar/home/mliu171/reuseinterp-loopvl/runs/loopvl-training-source-photos-20261017-v1/report.md`. The verified bundle and browser check are generated under `/oscar/home/mliu171/reuseinterp-loopvl/experiments/loopvl-training-images-20261017/analysis-v1/`. These outputs do not yet exist while the GPU stages are pending.
+The helper reads the completed `pipeline_state.json` and private connection file. The scientific report is at `/oscar/home/mliu171/reuseinterp-loopvl/runs/loopvl-training-source-photos-20261017-v1/report.md`. The verified bundle and browser check are under `/oscar/home/mliu171/reuseinterp-loopvl/experiments/loopvl-training-images-20261017/analysis-v1/`. Viewer sessions last four hours from startup; restart instructions below apply after the current allocation ends.
 
 ## Create a portable bundle
 
@@ -77,7 +77,7 @@ python /oscar/home/mliu171/reuseinterp-loopvl/source/scripts/viewer_connection.p
   --experiment-dir /absolute/path/to/experiment-directory
 ```
 
-It reads `pipeline_state.json` once. While jobs are queued or running, it prints the recorded stage, job IDs, and connection-file location when available. After the viewer writes its ready file, it prints the exact tunnel command to run on your computer and the authenticated browser URL. Run the helper again when needed; it does not poll Slurm, submit work, or start a server. Its output includes the private session token, so keep it out of shared logs and Git. `--local-port 8766` changes only your computer's port if 8765 is occupied.
+It reads `pipeline_state.json` once. While jobs are queued or running, it prints the recorded stage, job IDs, and connection-file location when available. After the viewer writes its ready file, it prints the exact tunnel command to run on your computer and the authenticated browser URL. The local default is **8766**, chosen because 8765 is already occupied on your computer. `--local-port` selects another local port. Run the helper again when needed; it does not poll Slurm, submit work, or start a server. Its output includes the private session token, so keep it out of shared logs and Git.
 
 If you already know the private ready file, use the shortcut:
 
@@ -91,16 +91,16 @@ These are recorded startup details; the helper does not check whether an old ses
 Read the private ready file on Oscar, then run this command in a terminal **on your computer**, using its actual `compute_ip`:
 
 ```bash
-ssh -N -L 8765:COMPUTE_IP:8765 mliu171@ssh.ccv.brown.edu
+ssh -N -L 8766:COMPUTE_IP:8765 mliu171@ssh.ccv.brown.edu
 ```
 
-Keep that terminal open and open the ready file's `local_url` in your browser. Oscar's [SSH-tunnel instructions](https://docs.ccv.brown.edu/oscar/jupyter-notebooks/jupyter-notebooks-on-oscar-1) use the same compute-IP forwarding pattern. If local port 8765 is occupied, forward `8766:COMPUTE_IP:8765` instead and change only the browser URL's local port to 8766.
+Keep that terminal open and use the helper's authenticated `http://127.0.0.1:8766/` browser URL. The ready file records the remote server's port; the helper rebuilds the URL for your chosen local port. Oscar's [SSH-tunnel instructions](https://docs.ccv.brown.edu/oscar/jupyter-notebooks/jupyter-notebooks-on-oscar-1) use the same compute-IP forwarding pattern. If local port 8766 is occupied, pass `--local-port 8767` and use the resulting command and URL.
 
 The server binds to `127.0.0.1` by default. If compute-node SSH is available for your allocation, you can retain that default and use a jump instead:
 
 ```bash
 ssh -N -J mliu171@ssh.ccv.brown.edu \
-  -L 8765:127.0.0.1:8765 mliu171@COMPUTE_NODE
+  -L 8766:127.0.0.1:8765 mliu171@COMPUTE_NODE
 ```
 
 The session ends at the CPU job's wall-time limit. To restart, submit the CPU script again with the same frozen source and bundle, then read the new job ID's ready file and reconnect using its new node and token. To stop early, cancel that specific viewer job with `scancel JOB_ID`.
@@ -114,7 +114,7 @@ scp -r mliu171@ssh.ccv.brown.edu:/absolute/path/to/viewer-bundle ./viewer-bundle
 python -m venv .viewer-venv
 source .viewer-venv/bin/activate
 python -m pip install -e .
-python scripts/serve_viewer.py serve --bundle-dir ./viewer-bundle
+python scripts/serve_viewer.py serve --bundle-dir ./viewer-bundle --port 8766
 ```
 
 Open the printed session URL. The local server uses loopback by default. It serves only exact manifest-listed artifacts, rejects path traversal and symlinks, and verifies bundle hashes before startup. It cannot browse arbitrary cluster or laptop files.

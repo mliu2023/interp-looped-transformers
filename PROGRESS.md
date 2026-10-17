@@ -8,7 +8,9 @@ The [activity explorer](docs/INTERACTIVE_VIEWER.md) is implemented with gallerie
 
 CPU jobs `7521391` and `7521638` inspected source metadata and staged 64 original OneVision instruction images (COCO 22, GQA 21, Visual Genome 21), receiving 296,602,377 image-shard bytes under the 500 MiB cap. The [source audit](docs/training_image_sources.md) records limitations. Every selected record is `reported_corpus_member`; the public assets do not establish exact checkpoint retention or historical memorization. Manifest SHA256: `a668b71200d2d433352b8c3ee702402e58a9537fccc131db3f8e21d5177ad7b6`.
 
-GPU timing job `7521681` passed the validated RTX A6000 backend preflight, then stopped before capture because the new guard assumed 1,024 tokens while the checkpoint specifies 2,048. Its evidence is preserved. Corrected timing job **`7522110`** and dependent CPU pipeline **`7522111`** are submitted. The retry must pass fresh native-grid official-path and full-MLP checks before the pipeline budgets and submits the 64-image, 48-channel, six-invocation capture. The full protocol fixes eight prompt controls in advance. Verification, browser validation, bundle export, and CPU viewer startup follow a successful capture. No real-image response results are available yet. Print current saved pipeline status and connection commands with `python scripts/viewer_connection.py --experiment-dir /oscar/home/mliu171/reuseinterp-loopvl/experiments/loopvl-training-images-20261017`.
+The real-image rerun **completed** in GPU job **`7522738`**, after corrected timing job `7522110` passed the native-grid checks. The [experiment report](results/training-images-20261017/REPORT.md) records 64 photographs, 48 presampled channels, all six L invocations, and eight prompt controls. Median L1/L4 image-ranking correlation was **0.0396**, with image-family bootstrap 95% interval **[-0.0095, 0.1038]**. Channels with both signed image means numbered **[18, 25, 28, 17, 19, 24]/48** at L1–L6; spatial responses covered both signs for all 48 channels at every invocation. These are signed-response observations, not established semantic poles.
+
+CPU job **`7522739`** verified all 64 original files, 72 raw archives, exact raw-to-pooled measurements, and primary-statistic recomputation. First-image official logits and all 54 MLP reconstruction checks had zero error. The real-image browser validation passed with six overlays and no JavaScript errors, and the cluster-local viewer bundle is exported. Collector elapsed time was 265.8 seconds, peak allocated VRAM 3.44 GiB, and the full GPU job consumed 280 allocated seconds. The first timing attempt `7521681` remains preserved as a failed token-limit guard before capture. Print saved pipeline status and current connection commands with `python scripts/viewer_connection.py --experiment-dir /oscar/home/mliu171/reuseinterp-loopvl/experiments/loopvl-training-images-20261017`; follow the [viewer guide](docs/INTERACTIVE_VIEWER.md) for local access.
 
 ## Verified evidence
 
@@ -21,6 +23,7 @@ GPU timing job `7521681` passed the validated RTX A6000 backend preflight, then 
 | Numerical smoke | All 64 checks passed across 16 examples; report checksum matches the parity gate | [Parity report](../runs/loopvl-transfer-v1/parity_report.json), [gates](../runs/loopvl-transfer-v1/gates.json) |
 | Controlled data | 1,160 scene families, 2,320 images, 9,280 questions with masks, labels, and paired edits | [Data manifest](../datasets/scenes-v1/manifest.json) |
 | Signed activity pilot | Completed on GPU job 7517236; all 72 capture archives and primary statistics verified in CPU job 7517514 | [Experiment report](results/poles-pilot-20261017/REPORT.md), [verification](results/poles-pilot-20261017/verification.json) |
+| Training-source photograph pilot | Completed on GPU job 7522738; 64 original photos, 48 channels, six L invocations; CPU verification and browser validation passed in 7522739 | [Experiment report](results/training-images-20261017/REPORT.md), [verification](results/training-images-20261017/verification.json), [viewer checks](results/training-images-20261017/viewer_validation.json) |
 
 The numerical smoke covers the first prediction and greedy output at diagnostic physical layer 0, channel 0. Capture, self replacement, and zero dose reproduced official logits exactly in that run. A local dose check verified the intended changed coordinate at L4. This does not establish all sampled sites, real object mask alignment, donor validity, or task competence.
 
@@ -28,7 +31,7 @@ The checked in `docs/cluster_setup_status.json` and `docs/setup_validation.json`
 
 The original population study still has only the parity gate. No semantic transfer, readout transfer, or causal use endpoint has been measured. The separate exploratory signed activity experiment below has completed.
 
-## First image experiment: completed
+## First image experiment: historical shape pilot
 
 The [signed activity pilot report](results/poles-pilot-20261017/REPORT.md) records one completed experiment: 64 paired pilot images, 48 presampled channels in physical L layers 0, 7, and 15, and all six L invocations. It measures signed response coverage, image ranking stability, and paired color-edit response agreement. This is an exploratory LoopVL extension, not the paper's ImageNet reproduction.
 
@@ -38,9 +41,9 @@ GPU job `7517236` completed all 73 forwards. First-image official-logit and full
 
 ## Next research priority: LoopVL training images
 
-The user has specified actual images from LoopVL's training data as the primary dataset. Follow the revised [replication plan](docs/NEURON_REPLICATION_PLAN.md#required-data-loopvls-own-training-images). The source-image pool, provenance adapter, collector, and viewer are now implemented as described above; exact retained-record evidence remains missing, and the real-image capture is awaiting the corrected timing check.
+The user has specified actual images from LoopVL's training data as the primary dataset. Follow the revised [replication plan](docs/NEURON_REPLICATION_PLAN.md#required-data-loopvls-own-training-images). The source-image pool, provenance adapter, native-grid collector, viewer, and first 64-photo capture are now implemented and verified as described above. Exact retained-record evidence remains missing: all current source records are `reported_corpus_member`. The next scientific work is broader pole retrieval and semantic validation on additional image families, then the costed training and circuit experiments.
 
-The existing shape pilot remains evidence about generated scenes and capture implementation. Its results are not findings on real training images. The new variable-grid validation still requires its scheduled loaded-model check. Neither CIFAR nor unrelated ImageNet images replace the documented training-source photographs.
+The existing shape pilot remains evidence about generated scenes and capture implementation. Its results are not findings on real training images. The real-image run passed fresh native variable-grid, official-path, and reconstruction checks. Neither CIFAR nor unrelated ImageNet images replace the documented training-source photographs.
 
 ## Original study gates and remaining image work
 
@@ -52,9 +55,9 @@ The existing shape pilot remains evidence about generated scenes and capture imp
 | Discovery analysis | Pending real inputs | Frozen encoders/readouts and integrated alternative explanation controls |
 | Causal collection | Incomplete implementation | Candidate specific donors, full controls, and short horizon execution |
 | Protocol lock and confirmation | Blocked by preceding scientific gates | Complete discovery evidence, controls, candidate rules, and immutable lock |
-| Goodfire image replication | Shape pilot preserved; primary data direction changed to LoopVL training images | Training-record provenance and real-image capture first; semantic poles, compression retraining, memorization, and circuits by iteration remain |
+| Goodfire image replication | Verified 64-photo observational training-source pilot; exact checkpoint retention unverified | Semantic pole validation, compression retraining, memorization, and circuits by iteration remain |
 
-The original population-study timing and capability protocol remains in the [cluster runbook](docs/CLUSTER_RUNBOOK.md#measure-timing-and-memory) as a separate workflow. After failed timing job `7521681` (160 allocated GPU seconds), recorded consumption is 0.1850 of 30 GPU hours with no unresolved reservation at that accounting refresh. Retries and later submissions must refresh the shared ledger and respect its remaining allowance.
+The original population-study timing and capability protocol remains in the [cluster runbook](docs/CLUSTER_RUNBOOK.md#measure-timing-and-memory) as a separate workflow. After completed real-image capture `7522738`, recorded shared consumption is **0.3056 of 30 GPU hours**, with no outstanding GPU reservation at that accounting refresh. This includes the failed first timing attempt, corrected timing, and full capture. Later submissions must refresh the shared ledger and respect its remaining allowance.
 
 ## Remaining implementation
 
@@ -70,9 +73,10 @@ The existing observational confirmation executor rejects protocols containing ca
 
 - Editable source: `/oscar/home/mliu171/reuseinterp-loopvl/source`.
 - Active environment and frozen snapshot: `../recovery-cu128-20261016/`.
-- Model, upstream code, and dataset: `../model/`, `../LoopVL/`, and `../datasets/scenes-v1/`.
-- Current run: `../runs/loopvl-transfer-v1/`.
+- Model and upstream code: `../model/` and `../LoopVL/`.
+- Current photograph pool and run: `../datasets/loopvl-training-source-photos-20261017-v1/` and `../runs/loopvl-training-source-photos-20261017-v1/`.
+- Original population-study dataset and run: `../datasets/scenes-v1/` and `../runs/loopvl-transfer-v1/`.
 - Shared accounting: `../runs/scheduler_ledger.json`; cap 30 GPU hours across all stages and retries.
 - Research output cap: 20 GiB, excluding checkpoint and source datasets.
 
-The representative sample remains 32 neurons per physical L layer, or 512 total if loaded dimensions match. State readout layers are configured as 0 and 5. These decisions and the existing family splits remain unchanged.
+The original population-study representative sample remains 32 neurons per physical L layer, or 512 total if loaded dimensions match. Its state readout layers are configured as 0 and 5. Those decisions and family splits remain unchanged; the separate photograph pilot sampled 48 channels across physical L layers 0, 7, and 15.

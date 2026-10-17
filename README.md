@@ -8,7 +8,7 @@ Work directly in the editable cluster checkout at `/oscar/home/mliu171/reuseinte
 
 The [viewer guide](docs/INTERACTIVE_VIEWER.md) covers local SSH access, portable bundles, and restarting the CPU server. The viewer has physical layer/channel and MLP-stream selectors, response-ranked image galleries, signed spatial overlays across all six L invocations, image-response trajectories, and a clickable rank-transfer scatter. Browsing uses saved captures and no GPU.
 
-The real-image rerun uses 64 original images from the pinned OneVision instruction source: 22 COCO, 21 GQA, and 21 Visual Genome images. Images and provenance are staged. Corrected timing job `7522110` and dependent CPU pipeline `7522111` are submitted. The initial attempt (`7521681`) stopped before capture on a token-limit guard, now corrected to the checkpoint's 2,048-token policy. The pipeline budgets the full capture from native-grid timing, verifies results, exports the viewer, and submits a CPU server. This is a training-source study: exact checkpoint retention of individual images remains unverified. See the [setup evidence and status](results/viewer-setup-20261017/REPORT.md) and [source audit](docs/training_image_sources.md).
+The real-image rerun is complete: 64 original OneVision instruction images (22 COCO, 21 GQA, 21 Visual Genome), 48 presampled channels, all six L invocations, and eight prompt controls. GPU job `7522738` captured the data; CPU job `7522739` verified all 72 raw archives and original images, recomputed the statistics, and passed Chromium checks. Viewer job `7523389` serves the verified bundle. Local connections default to **127.0.0.1:8766**. See the [experiment report](results/training-images-20261017/REPORT.md) and [source audit](docs/training_image_sources.md). These are training-source images; exact checkpoint retention remains unverified.
 
 On Oscar, print the pipeline status and, when ready, your local connection commands:
 
@@ -18,7 +18,9 @@ python scripts/viewer_connection.py --experiment-dir /oscar/home/mliu171/reusein
 
 ## Current evidence
 
-The saved GPU numerical smoke passed 64 checks on 16 examples. It validates official inference parity and basic capture/intervention behavior at physical layer 0, channel 0. Task competence, population capture, transfer estimates, and candidate specific causal experiments remain pending. The next image-neuron study starts with training-image provenance and a 64-original-image LoopVL capture pilot, as specified in the [replication plan](docs/NEURON_REPLICATION_PLAN.md#required-data-loopvls-own-training-images).
+The saved GPU numerical smoke passed 64 checks on 16 examples. It validates official inference parity and basic capture/intervention behavior at physical layer 0, channel 0. The new real-image pilot also passed first-image official-logit and full-MLP reconstruction checks at all selected layers and invocations. Task competence, the original population capture, and candidate-specific causal experiments remain pending.
+
+On the 64 real source images, median L1/L4 image-ranking correlation was **0.040** (family-bootstrap 95% interval **−0.009 to 0.104**). Signed image-mean coverage varied across invocations; signs and ranking changes do not establish semantic poles. Full measurements and limitations are in the experiment report above.
 
 One exploratory signed-response experiment has also completed: 48 MLP channels on 64 synthetic images across all six L invocations. Median L1/L4 image-response ranking correlation was 0.138 (family-bootstrap 95% interval 0.065–0.200). Both signed image means occurred in 6/48 channels at L1 and 17/48 at L4. This does not establish semantic poles. The [experiment report](results/poles-pilot-20261017/REPORT.md) includes the verified statistics, gallery, and compact data needed to recompute the results.
 
@@ -35,7 +37,7 @@ export REUSE_SUBMITTER="$REUSE_SOURCE_DIR/scripts/slurm/submit.py"
 python "$REUSE_SUBMITTER" account
 ```
 
-This prints the recorded shared GPU budget. Follow the replication plan and runbook for scheduler accounting, script review, and submission. The existing `poles-pilot.yaml` freezes the old shape experiment. `loopvl-training-images-timing.json` and `loopvl-training-images.json` define the new native-image checks and full pilot. The staged pool and collector are implemented; completed real-image measurements still depend on the queued GPU jobs.
+This prints the recorded shared GPU budget. Follow the replication plan and runbook for scheduler accounting, script review, and submission. The existing `poles-pilot.yaml` freezes the old shape experiment. `loopvl-training-images-timing.json` and `loopvl-training-images.json` define the completed native-image checks and full pilot. Inspect the saved report and pipeline state before submitting another run.
 
 ## Code and artifacts
 

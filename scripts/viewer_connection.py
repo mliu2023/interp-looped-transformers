@@ -10,6 +10,7 @@ from urllib.parse import urlencode
 
 
 SSH_LOGIN = 'mliu171@ssh.ccv.brown.edu'
+DEFAULT_LOCAL_PORT = 8766
 
 
 def _port(value):
@@ -18,7 +19,7 @@ def _port(value):
     return value
 
 
-def connection_details(ready, local_port=8765):
+def connection_details(ready, local_port=DEFAULT_LOCAL_PORT):
     """Reconstruct commands from validated primitives, never a saved URL/command."""
     if not isinstance(ready, dict):
         raise ValueError('Ready file must contain a JSON object')
@@ -41,7 +42,7 @@ def connection_details(ready, local_port=8765):
     return command, url
 
 
-def describe(experiment_dir=None, ready_file=None, local_port=8765, environ=None):
+def describe(experiment_dir=None, ready_file=None, local_port=DEFAULT_LOCAL_PORT, environ=None):
     """Read one snapshot of state. Missing files are an expected queued status."""
     _port(local_port)
     lines = []
@@ -95,7 +96,8 @@ def main(argv=None):
     source = parser.add_mutually_exclusive_group(required=True)
     source.add_argument('--experiment-dir', help='Directory containing pipeline_state.json')
     source.add_argument('--ready-file', help='Explicit private viewer-sessions/JOB_ID.json shortcut')
-    parser.add_argument('--local-port', type=int, default=8765)
+    parser.add_argument('--local-port', type=int, default=DEFAULT_LOCAL_PORT,
+                        help='Port on your computer (default: 8766)')
     args = parser.parse_args(argv)
     try:
         lines = describe(args.experiment_dir, args.ready_file, args.local_port)

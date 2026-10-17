@@ -19,7 +19,7 @@ class ConnectionTests(unittest.TestCase):
         self.assertEqual(command, 'ssh -N -L 8766:10.2.3.4:8765 mliu171@ssh.ccv.brown.edu')
         self.assertEqual(url, 'http://127.0.0.1:8766/?token=test_session_token_12345')
         ready['compute_ip'] = 'fd00::1234'
-        self.assertIn('8765:[fd00::1234]:8765', connection.connection_details(ready)[0])
+        self.assertIn('8766:[fd00::1234]:8765', connection.connection_details(ready)[0])
 
     def test_malformed_ip_port_or_token_cannot_form_shell_command(self):
         valid = {'compute_ip': '10.2.3.4', 'port': 8765, 'token': 'test_session_token_12345'}
@@ -49,8 +49,8 @@ class ConnectionTests(unittest.TestCase):
             self.assertIn('has not appeared', pending)
             ready.write_text(json.dumps({'compute_ip': '10.2.3.4', 'port': 8765, 'token': 'test_session_token_12345'}))
             complete = '\n'.join(connection.describe(experiment_dir=root))
-            self.assertIn('ssh -N -L 8765:10.2.3.4:8765', complete)
-            self.assertIn('http://127.0.0.1:8765/?token=', complete)
+            self.assertIn('ssh -N -L 8766:10.2.3.4:8765', complete)
+            self.assertIn('http://127.0.0.1:8766/?token=', complete)
 
 
 if __name__ == '__main__':

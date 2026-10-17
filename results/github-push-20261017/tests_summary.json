@@ -1,0 +1,23 @@
+{
+  "recorded_utc": "2026-10-17T17:52:01.880691+00:00",
+  "slurm_job_id": "7519064",
+  "sbatch_wait_exit_code": 0,
+  "tests_run": 132,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "test_seconds": 7.635,
+  "gpu_requested": false,
+  "tested_snapshot_sha256": "ac4675ea32bb93c5d12e8ff6cac8bac4dc4593dbcc0e8e20288542d3a522d4f9",
+  "tested_python_and_shell_files_match_publication": true,
+  "published_pilot_recomputation": {
+    "passed": true,
+    "images": 64,
+    "primary_statistics_sha256": "0467604bcde0138a9bfa164f1c44f958e5de3f75c04f1a739904e8209a4d38b4"
+  },
+  "evidence_sha256": {
+    "tests.log": "7c97baa997e52aa16429a9489fe757aee66d40994bae63b9143a775d2562f8d5",
+    "validation.log": "e65afa07d91f1f4b5d840220c2b9a78ea1dd99f50ca07b61ffeaeb7609e7aa0f",
+    "validate.sbatch": "e7082845386894a9132f6a936768ad09a5b777e71de8cee7ddb34b03e554c8ab"
+  }
+}

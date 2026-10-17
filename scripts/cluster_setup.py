@@ -9,6 +9,7 @@ import argparse
 import hashlib
 import importlib.util
 import json
+import math
 import os
 from pathlib import Path, PurePosixPath
 import re
@@ -61,8 +62,20 @@ def write_environment(state):
     Path(state['env_file']).chmod(0o600)
 
 
+def profile_suffix(profile):
+    if profile is None:
+        return ''
+    if not re.fullmatch(r'[a-z][a-z0-9-]{0,31}', profile):
+        raise ValueError('Profile must be a short lowercase name containing letters, digits, and hyphens')
+    return '-' + profile
+
+
+def artifact_path(state, stem, extension):
+    return Path(state['base_dir']) / (stem + profile_suffix(state.get('profile')) + extension)
+
+
 def persist(state):
-    save_json(Path(state['base_dir']) / 'setup-state.json', state)
+    save_json(artifact_path(state, 'setup-state', '.json'), state)
     write_environment(state)
 
 
@@ -112,9 +125,11 @@ def configure(args):
     return state
 
 
-def load_state(base_dir):
+def load_state(base_dir, profile=None):
     base = absolute(base_dir, '--base-dir')
-    state = json.loads((base / 'setup-state.json').read_text())
+    state = json.loads((base / ('setup-state' + profile_suffix(profile) + '.json')).read_text())
+    if state.get('profile') != profile:
+        raise ValueError('Preparation profile does not match its state file')
     if state.get('base_dir') != str(base):
         raise ValueError('Preparation state was moved; configure a fresh base directory')
     for name in ('REUSE_PROJECT_DIR', 'REUSE_ENV_DIR', 'REUSE_RUN_ROOT', 'REUSE_CACHE_ROOT',
@@ -172,6 +187,11 @@ def official_source(state):
 
 
 def install(args, state):
+    expected = state.get('runtime_variant')
+    if expected and (args.use_installed_torch or args.torch_version != expected['torch']
+                     or args.torchvision_version != expected['torchvision']
+                     or args.torch_index_url != expected['torch_index_url']):
+        raise ValueError('Recovery installation must use its exact declared CUDA wheel pins and index')
     if state['frozen']:
         raise ValueError('Frozen environment cannot be changed; configure a fresh base directory')
     state.update(installed=False, staged=False)
@@ -196,7 +216,7 @@ def install(args, state):
     upstream = official_source(state)
     python = env_python(state)
     # Keep later dependency resolution from replacing the selected CUDA build.
-    constraints = Path(state['base_dir']) / 'torch-pair.constraints.txt'
+    constraints = artifact_path(state, 'torch-pair.constraints', '.txt')
     if not args.use_installed_torch:
         constraints.write_text('torch==' + args.torch_version + '\n'
                                'torchvision==' + args.torchvision_version + '\n')
@@ -212,6 +232,8 @@ def install(args, state):
         'print(json.dumps({"torch":torch.__version__,"torchvision":torchvision.__version__,"cuda_runtime":torch.version.cuda}))'], capture=True))
     if not pair['cuda_runtime']:
         raise ValueError('CPU-only torch installation cannot run the scheduled GPU smoke; install the approved CUDA build')
+    if expected and any(pair.get(key) != expected[key] for key in ('torch', 'torchvision', 'cuda_runtime')):
+        raise ValueError('Installed recovery pair/runtime differs from declared CUDA build; do not freeze or submit it')
     if not args.use_installed_torch:
         for name, requested in (('torch', args.torch_version), ('torchvision', args.torchvision_version)):
             actual = pair[name] if '+' in requested else pair[name].split('+')[0]
@@ -316,18 +338,19 @@ def stage(args, state):
     state['environment']['REUSE_CACHE_READY'] = '0'
     persist(state)
     pinned_configuration(state['source_dir'])
-    archive = Path(state['source_dir']) / 'assets/scenes-v1.tar.gz'
-    extract_dataset(archive, Path(str(archive) + '.sha256'), state['environment']['REUSE_DATASET_DIR'])
-    run(state, [env_python(state), '-c',
-        'import sys; from huggingface_hub import snapshot_download; '
-        'snapshot_download(repo_id=sys.argv[1],revision=sys.argv[2],local_dir=sys.argv[3])',
-        MODEL_REPO, CHECKPOINT_REVISION, state['environment']['REUSE_MODEL_DIR']])
+    if not state.get('recovery'):
+        archive = Path(state['source_dir']) / 'assets/scenes-v1.tar.gz'
+        extract_dataset(archive, Path(str(archive) + '.sha256'), state['environment']['REUSE_DATASET_DIR'])
+        run(state, [env_python(state), '-c',
+            'import sys; from huggingface_hub import snapshot_download; '
+            'snapshot_download(repo_id=sys.argv[1],revision=sys.argv[2],local_dir=sys.argv[3])',
+            MODEL_REPO, CHECKPOINT_REVISION, state['environment']['REUSE_MODEL_DIR']])
     evidence = verify_staged(state)
-    save_json(Path(state['base_dir']) / 'staging-evidence.json', evidence)
+    save_json(artifact_path(state, 'staging-evidence', '.json'), evidence)
     state['staged'] = True
     state['environment']['REUSE_CACHE_READY'] = '1'
     persist(state)
-    print(json.dumps({'staged': True, 'evidence': str(Path(state['base_dir']) / 'staging-evidence.json'), 'next': 'freeze'}, indent=2))
+    print(json.dumps({'staged': True, 'evidence': str(artifact_path(state, 'staging-evidence', '.json')), 'next': 'freeze'}, indent=2))
 
 
 def freeze_module(source):
@@ -345,7 +368,7 @@ def freeze(args, state):
     evidence = verify_staged(state)
     base, source = Path(state['base_dir']), Path(state['source_dir'])
     module = freeze_module(source)
-    lock = base / 'cluster-dependencies.lock'
+    lock = artifact_path(state, 'cluster-dependencies', '.lock')
     lock_text = run(state, [env_python(state), '-m', 'pip', 'freeze', '--all'], capture=True)
     # Protect snapshot manifests and logs from credential-bearing package URLs.
     if re.search(r'https?://[^\s/]*@', lock_text):
@@ -354,7 +377,7 @@ def freeze(args, state):
     commit = run(state, ['git', '-C', source, 'rev-parse', 'HEAD'], capture=True).strip()
     dirty = run(state, ['git', '-C', source, 'status', '--porcelain', '--untracked-files=all'], capture=True)
     diff = run(state, ['git', '-C', source, 'diff', '--binary', 'HEAD'], capture=True)
-    preparation = base / 'preparation'
+    preparation = artifact_path(state, 'preparation', '')
     if preparation.exists():
         raise ValueError('Preparation copy already exists after an interrupted freeze; inspect it and use a fresh base directory')
     preparation.mkdir()
@@ -371,7 +394,15 @@ def freeze(args, state):
         config = json.loads(path.read_text())
         if 'dataset_dir' in config:
             config['dataset_dir'] = state['environment']['REUSE_DATASET_DIR']
-            path.write_text(json.dumps(config, indent=2) + '\n')
+        if state.get('runtime_variant') and 'run_id' in config:
+            config['run_id'] += '-' + state['profile']
+            config['runtime_variant'] = state['runtime_variant']
+            if 'study_fingerprint' in config:
+                io_spec = importlib.util.spec_from_file_location('recovery_fingerprint', source / 'src/reuseinterp/io.py')
+                identity = importlib.util.module_from_spec(io_spec)
+                io_spec.loader.exec_module(identity)
+                config['study_fingerprint'] = identity.study_fingerprint(config)
+        path.write_text(json.dumps(config, indent=2) + '\n')
     if state['site_env']:
         shutil.copy2(state['site_env'], preparation / 'configs/site-environment.sh')
     provenance = {'source_commit': commit, 'source_worktree_status': dirty,
@@ -379,7 +410,10 @@ def freeze(args, state):
                   'source_files': original_hashes,
                   'transformations': ['dataset_dir in JSON YAML configs set to approved absolute shared path',
                                       'reviewed optional site-environment.sh copied into snapshot'],
-                  'staging_evidence_sha256': sha(base / 'staging-evidence.json')}
+                  'staging_evidence_sha256': sha(artifact_path(state, 'staging-evidence', '.json'))}
+    if state.get('recovery'):
+        provenance['recovery'] = state['recovery']
+        provenance['transformations'].append('new run_id and study fingerprint for declared CUDA runtime variant; all prior gates remain isolated')
     save_json(preparation / 'source_provenance.json', provenance)
     snapshot = Path(state['environment']['REUSE_PROJECT_DIR'])
     run(state, [env_python(state), source / 'scripts/slurm/freeze.py', '--source', preparation,
@@ -395,8 +429,120 @@ def freeze(args, state):
                       'env_file': state['env_file'], 'next': 'scheduled singleton validate smoke'}, indent=2))
 
 
+def recovery_accounting(state, failed_job_id):
+    """Read saved sacct evidence; never release reservations or refresh it ourselves."""
+    if not re.fullmatch(r'[0-9]+', failed_job_id):
+        raise ValueError('--failed-job-id must be the numeric failed singleton smoke job ID')
+    root = Path(state['environment']['REUSE_RUN_ROOT'])
+    ledger_path = root / 'scheduler_ledger.json'
+    if not ledger_path.is_file():
+        raise ValueError('No scheduler ledger; run submit.py account --refresh using the original environment first')
+    spec = importlib.util.spec_from_file_location('recovery_slurm_submit', Path(state['source_dir']) / 'scripts/slurm/submit.py')
+    scheduler = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(scheduler)
+    with scheduler.ledger_lock(ledger_path):
+        ledger = json.loads(ledger_path.read_text())
+        cap = float(ledger['gpu_hour_cap'])
+        if not math.isfinite(cap) or not 0 < cap <= 30:
+            raise ValueError('Original scheduler budget is invalid; recovery cannot create or reset a cap')
+        history = ledger.get('accounting_history', [])
+        if not history:
+            raise ValueError('Refresh accounting first: submit.py account --refresh')
+        accounting_path = Path(history[-1]['source'])
+        if not accounting_path.is_file() or sha(accounting_path) != history[-1]['sha256']:
+            raise ValueError('Saved scheduler accounting evidence is missing or changed; refresh accounting first')
+        rows = scheduler.parse_sacct(accounting_path.read_text())
+        failed_job = None
+        for job in ledger['jobs']:
+            if job['kind'] != 'gpu':
+                continue
+            for index, task in job['tasks'].items():
+                elapsed, gpus = task.get('elapsed_seconds'), task.get('allocated_gpus')
+                if (task.get('state') not in scheduler.TERMINAL or not isinstance(elapsed, int)
+                        or isinstance(elapsed, bool) or elapsed < 0 or not isinstance(gpus, int)
+                        or isinstance(gpus, bool) or gpus < (1 if elapsed else 0)):
+                    raise ValueError('Outstanding or unreconciled GPU job remains; wait and run submit.py account --refresh first')
+                key = str(job.get('job_id'))
+                if job.get('is_array', job.get('num_shards', 1) > 1):
+                    key += '_' + index
+                if rows.get(key) != {name: task[name] for name in ('state', 'elapsed_seconds', 'allocated_gpus')}:
+                    raise ValueError('Latest saved accounting does not reconcile every GPU task; refresh accounting first')
+            if str(job.get('job_id')) == failed_job_id:
+                failed_job = job
+        if (failed_job is None or failed_job.get('stage') != 'validate'
+                or failed_job.get('num_shards', 1) != 1
+                or any(task['state'] != 'FAILED' for task in failed_job['tasks'].values())):
+            raise ValueError('Recovery requires the accounted FAILED singleton validate smoke job')
+        budget = scheduler.budget(ledger)
+        if budget['outstanding_max_gpu_hours'] or budget['remaining_gpu_hours'] <= 0:
+            raise ValueError('Original GPU-hour budget has no room for recovery; never reset the ledger')
+        ledger_hash = sha(ledger_path)
+    preflight_path = root / 'preflight' / (failed_job_id + '_single.json')
+    preflight = json.loads(preflight_path.read_text())
+    if (str(preflight.get('slurm_job_id')) != failed_job_id or preflight.get('status') != 'failed'
+            or preflight.get('cuda_available') is not False or preflight.get('cuda_runtime') != '13.0'
+            or preflight.get('torch_version', '').split('+')[0] != '2.12.1'):
+        raise ValueError('Preserved preflight does not document the expected CUDA 13 initialization failure')
+    return {'failed_job_id': failed_job_id, 'scheduler_ledger': str(ledger_path),
+            'scheduler_ledger_sha256_at_recovery': ledger_hash, 'budget_at_recovery': budget,
+            'accounting_evidence': str(accounting_path), 'accounting_evidence_sha256': sha(accounting_path),
+            'failed_preflight': str(preflight_path), 'failed_preflight_sha256': sha(preflight_path)}
+
+
+def recover(args, original):
+    """Build a separate CUDA 12.6 environment/snapshot using existing pinned assets."""
+    suffix = profile_suffix(args.name)
+    if not original.get('frozen') or not original.get('installed') or not original.get('staged'):
+        raise ValueError('Recovery requires the original frozen, installed and staged environment')
+    if args.torch_version != '2.12.1+cu126' or args.torchvision_version != '0.27.1+cu126':
+        raise ValueError('Recovery preserves public torch/torchvision releases and requires exact +cu126 builds')
+    parsed = urlsplit(args.torch_index_url)
+    if parsed.scheme != 'https' or not parsed.netloc or parsed.username or parsed.password:
+        raise ValueError('Recovery wheel index must use HTTPS without credentials')
+    module = freeze_module(original['source_dir'])
+    old_snapshot = original['environment']['REUSE_PROJECT_DIR']
+    old_hash = module.verify(old_snapshot)
+    if old_hash != original.get('snapshot_sha256'):
+        raise ValueError('Original snapshot manifest changed; preserve and inspect the failure evidence')
+    evidence = recovery_accounting(original, args.failed_job_id)
+    base = Path(original['base_dir'])
+    for stem, extension in (('setup-state', '.json'), ('cluster', '.env'), ('venv', ''),
+                            ('snapshot', ''), ('preparation', ''), ('staging-evidence', '.json'),
+                            ('cluster-dependencies', '.lock')):
+        if (base / (stem + suffix + extension)).exists():
+            raise ValueError('Recovery profile already exists; never overwrite it. Resume its named install/stage/freeze phases or select a fresh name')
+    state = json.loads(json.dumps(original))
+    state.update(profile=args.name, env_file=str(base / ('cluster' + suffix + '.env')),
+                 installed=False, staged=False, frozen=False)
+    for key in ('snapshot_sha256', 'torch_pair', 'python_platform'):
+        state.pop(key, None)
+    state['environment']['REUSE_ENV_DIR'] = str(base / ('venv' + suffix))
+    state['environment']['REUSE_PROJECT_DIR'] = str(base / ('snapshot' + suffix))
+    state['environment']['REUSE_CACHE_READY'] = '0'
+    if state['site_env']:
+        state['environment']['REUSE_SITE_ENV'] = str(base / ('snapshot' + suffix) / 'configs/site-environment.sh')
+    # Every research-stage config receives this run suffix and runtime identity.
+    # No gates, captures, reservations or previous output directories are copied.
+    state['runtime_variant'] = {'profile': args.name, 'torch': args.torch_version,
+                                'torchvision': args.torchvision_version, 'cuda_runtime': '12.6',
+                                'torch_index_url': args.torch_index_url}
+    state['recovery'] = dict(evidence, original_snapshot=old_snapshot, original_snapshot_sha256=old_hash,
+                             original_environment=original['environment']['REUSE_ENV_DIR'],
+                             original_state_sha256=sha(artifact_path(original, 'setup-state', '.json')),
+                             original_env_file=original['env_file'])
+    persist(state)
+    install(argparse.Namespace(use_installed_torch=False, torch_index_url=args.torch_index_url,
+                               torch_version=args.torch_version, torchvision_version=args.torchvision_version), state)
+    stage(args, state)
+    freeze(args, state)
+    print(json.dumps({'recovery_profile': args.name, 'env_file': state['env_file'],
+                      'run_root_preserved': state['environment']['REUSE_RUN_ROOT'],
+                      'next': 'source the new env file; submit singleton validate before any pilot or arrays'}, indent=2))
+    return state
+
+
 def status(args, state):
-    report = {key: state.get(key) for key in ('installed', 'staged', 'frozen', 'snapshot_sha256', 'torch_pair', 'env_file')}
+    report = {key: state.get(key) for key in ('profile', 'installed', 'staged', 'frozen', 'snapshot_sha256', 'torch_pair', 'env_file')}
     report['cache_ready'] = state['environment']['REUSE_CACHE_READY']
     report['gpu_checks'] = 'pending; setup never submits a job or loads model weights'
     if state['frozen']:
@@ -416,16 +562,24 @@ def main(argv=None):
     for name in ('install', 'stage', 'freeze', 'status'):
         command = commands.add_parser(name)
         command.add_argument('--base-dir', required=True)
+        command.add_argument('--profile', help='Named recovery profile; omit for original setup')
         if name == 'install':
             command.add_argument('--torch-index-url', help='Explicit site-approved HTTPS PyTorch wheel index')
             command.add_argument('--torch-version', default='2.8.0+cu128')
             command.add_argument('--torchvision-version', default='0.23.0+cu128')
             command.add_argument('--use-installed-torch', action='store_true', help='Use a compatible CUDA pair supplied by site modules')
+    recovery = commands.add_parser('recover', help='Create a separate CUDA 12.6 recovery environment and snapshot')
+    recovery.add_argument('--base-dir', required=True)
+    recovery.add_argument('--name', default='cu126')
+    recovery.add_argument('--failed-job-id', required=True)
+    recovery.add_argument('--torch-index-url', default='https://download.pytorch.org/whl/cu126')
+    recovery.add_argument('--torch-version', default='2.12.1+cu126')
+    recovery.add_argument('--torchvision-version', default='0.27.1+cu126')
     args = parser.parse_args(argv)
     if args.phase == 'configure':
         configure(args)
     else:
-        state = load_state(args.base_dir)
+        state = load_state(args.base_dir, getattr(args, 'profile', None))
         globals()[args.phase](args, state)
     return 0
 

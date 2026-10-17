@@ -7,12 +7,12 @@ Updated October 17, 2026 from saved cluster artifacts. This is the current statu
 | Component | Verified state | Evidence |
 | --- | --- | --- |
 | Environment recovery | CUDA 12.8 environment created; torch 2.8.0+cu128 and torchvision 0.23.0+cu128 | [Recovery state](../recovery-cu128-20261016/recovery_state.json) |
-| CPU engineering suite | Saved scheduled run: 115 tests, no failures, one skip | [Recovery test log](../recovery-cu128-20261016/tests.log) |
+| CPU engineering suite | Scheduled publication check: all 132 tests passed, no skips; published pilot statistics recomputed exactly | [Test summary](results/github-push-20261017/tests_summary.json), [test log](results/github-push-20261017/tests.log) |
 | GPU preflight | CUDA and BF16 available on the assigned RTX A6000 | [Preflight record](../runs/preflight/7501493_single.json) |
 | Loaded model structure | Audited 16 L and 16 H MLP sites and the expected schedule | [Loaded architecture audit](../runs/loopvl-transfer-v1/loaded_architecture_audit.json) |
 | Numerical smoke | All 64 checks passed across 16 examples; report checksum matches the parity gate | [Parity report](../runs/loopvl-transfer-v1/parity_report.json), [gates](../runs/loopvl-transfer-v1/gates.json) |
 | Controlled data | 1,160 scene families, 2,320 images, 9,280 questions with masks, labels, and paired edits | [Data manifest](../datasets/scenes-v1/manifest.json) |
-| Signed activity pilot | Completed on GPU job 7517236; all 72 capture archives and primary statistics verified in CPU job 7517514 | [Experiment report](results/poles-pilot-20261017/REPORT.md), [verification](../runs/loopvl-poles-pilot-20261017/verification.json) |
+| Signed activity pilot | Completed on GPU job 7517236; all 72 capture archives and primary statistics verified in CPU job 7517514 | [Experiment report](results/poles-pilot-20261017/REPORT.md), [verification](results/poles-pilot-20261017/verification.json) |
 
 The numerical smoke covers the first prediction and greedy output at diagnostic physical layer 0, channel 0. Capture, self replacement, and zero dose reproduced official logits exactly in that run. A local dose check verified the intended changed coordinate at L4. This does not establish all sampled sites, real object mask alignment, donor validity, or task competence.
 

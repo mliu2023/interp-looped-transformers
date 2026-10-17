@@ -1,0 +1,20 @@
+## SLURM PROLOG ###############################################################
+##    Job ID : 7519064
+##  Job Name : reuse-push-check
+##  Nodelist : node1828
+##      CPUs : 1
+##  Mem/Node : 8192 MB
+## Directory : /oscar/home/mliu171/reuseinterp-loopvl
+##   Job Started : Sat Oct 17 13:50:29 EDT 2026
+###############################################################################
+{"snapshot_sha256": "ac4675ea32bb93c5d12e8ff6cac8bac4dc4593dbcc0e8e20288542d3a522d4f9"}
+{
+  "environment": "/tmp/tmpjjd_y23b/recovery-test/cluster.env",
+  "status": "ready_for_numerical_smoke",
+  "next": "Submit singleton validate using this environment; do not reuse old parity"
+}
+{
+  "passed": true,
+  "primary_statistics_sha256": "0467604bcde0138a9bfa164f1c44f958e5de3f75c04f1a739904e8209a4d38b4",
+  "images": 64
+}

@@ -85,14 +85,24 @@
     }
   ],
   "pending": [
-    "shared paths",
     "storage quota and purge policy",
-    "Python/module setup",
-    "CUDA/driver/runtime compatibility",
-    "complete offline cache",
-    "immutable snapshot",
-    "scheduled GPU validation"
+    "CUDA 12.6 recovery installation and frozen snapshot",
+    "allocated CUDA operator validation",
+    "model loading and numerical parity",
+    "actual failed-allocation GPU-hour reconciliation via sacct"
   ],
   "model_feasibility": "unmeasured",
-  "real_job_ids": []
+  "real_job_ids": ["7489067"],
+  "latest_reported_job": {
+    "state": "FAILED",
+    "elapsed": "00:00:17",
+    "hostname": "gpu2261.oscar.ccv.brown.edu",
+    "stage": "preflight before model loading",
+    "torch": "2.12.1+cu130",
+    "cuda_runtime": "13.0",
+    "reported_driver_api": 12090,
+    "cuda_available": false,
+    "evidence": "evidence/cluster/7489067-user-report.json",
+    "recovery_instructions": "docs/CUDA_RECOVERY.md"
+  }
 }

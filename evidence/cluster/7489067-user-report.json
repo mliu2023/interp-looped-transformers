@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "provenance": "Transcribed from user-supplied cluster output on 2026-10-16; not fetched directly by the agent. Original files on Oscar remain primary evidence.",
+  "preflight": {
+    "schema_version": 1,
+    "status": "failed",
+    "slurm_job_id": "7489067",
+    "array_task_id": null,
+    "python": "3.12.15 (main, Oct 14 2026, 01:05:27) [Clang 23.1.3 ]",
+    "hostname": "gpu2261.oscar.ccv.brown.edu",
+    "cuda_visible_devices": "0",
+    "model_device_placement": "pending model-adapter validation",
+    "torch_version": "2.12.1+cu130",
+    "cuda_runtime": "13.0",
+    "cuda_available": false,
+    "error": "CUDA unavailable; CPU fallback is forbidden",
+    "traceback": "Traceback (most recent call last):\n  File \"/oscar/home/mliu171/reuseinterp-loopvl/snapshot/scripts/cluster_preflight.py\", line 25, in main\n    raise RuntimeError('CUDA unavailable; CPU fallback is forbidden')\nRuntimeError: CUDA unavailable; CPU fallback is forbidden\n"
+  },
+  "stderr_cuda_warning": "/oscar/home/mliu171/reuseinterp-loopvl/venv/lib/python3.12/site-packages/torch/cuda/__init__.py:187: UserWarning: CUDA initialization: The NVIDIA driver on your system is too old (found version 12090). Please update your GPU driver by downloading and installing a new version from the URL: http://www.nvidia.com/Download/index.aspx Alternatively, go to: https://pytorch.org to install a PyTorch version that has been compiled with your version of the CUDA driver. (Triggered internally at /pytorch/c10/cuda/CUDAFunctions.cpp:119.)",
+  "slurm_summary": {
+    "job_id": "7489067",
+    "state": "FAILED",
+    "exit_code": "2:0",
+    "elapsed": "00:00:17",
+    "failed_step": "7489067.0",
+    "failed_step_elapsed": "00:00:12",
+    "snapshot_sha256_reported": "1c89a64561e9348f7588e12f452243827f4d8e5ea6c2bda6b90442d2c925b3ab"
+  },
+  "scope": "Environment/preflight failure before model loading; no parity report or model measurements.",
+  "uncertainty": "Agent has not independently queried the cluster. Full scheduler accounting including AllocTRES must be refreshed on Oscar before recovery.",
+  "recovery_candidate": {
+    "torch": "2.12.1+cu126",
+    "torchvision": "0.27.1+cu126",
+    "cuda_runtime": "12.6",
+    "wheel_index": "https://download.pytorch.org/whl/cu126",
+    "verification_status": "Official release instructions and Python 3.12/Linux x86_64 wheel availability verified; allocated GPU operators and model parity pending.",
+    "primary_sources": [
+      "https://pytorch.org/get-started/previous-versions/",
+      "https://download.pytorch.org/whl/cu126/torch/",
+      "https://download.pytorch.org/whl/cu126/torchvision/",
+      "https://docs.nvidia.com/deploy/cuda-compatibility/minor-version-compatibility.html",
+      "https://packaging.python.org/en/latest/specifications/version-specifiers/#version-matching"
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "summary_sha256": "fad47900c2b639fe19d5f23f57387ff142f14e78471c12dfefbd5e26766d2c4a",
+  "plot_script_sha256": "e7fb6955db45586c1c1545ee13b0bb20180b83086c153656f4379dbac2540df9",
+  "matplotlib_version": "3.11.2",
+  "confidence_interval_scope": "L1/L4 median only; resampled whole image families",
+  "scatter_jitter_seed": 0,
+  "model_forwards": 0,
+  "files": {
+    "results_overview.png": "471c349f6decf11fcda5225baf20ae5383cb05a05b65102f2778ed77aba012e4",
+    "results_overview.svg": "dcec51a671b7124c1b9feee6946e9842f4c164a01f2501421d7cd1afead65e27"
+  }
+}

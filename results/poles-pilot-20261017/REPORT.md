@@ -21,6 +21,12 @@ The [configuration](../../configs/poles-pilot.yaml) freezes the channels, famili
 
 ## Results
 
+![LoopVL pilot overview: image ranking stability, both-sign image means, and channel correlations by physical layer](results_overview.png)
+
+[Open the chart at full size](results_overview.png) · [Download the vector version](results_overview.svg)
+
+Panel A compares image-response rankings at each invocation with L1; the confidence interval applies only to L4. Panel B counts channels with supported image-mean responses of both signs. Panel C shows every sampled channel's L1/L4 correlation, grouped by physical layer, with the median marked. These are activity measurements, not semantic labels.
+
 | L invocation | Median per-channel image-ranking correlation with L1 | Channels with both signed image means |
 | --- | ---: | ---: |
 | L1 | 1.000 | 6 / 48 |
@@ -47,6 +53,8 @@ The paraphrase control changed image responses: median absolute change was **0.1
 Positive products often came from two negative branches. Among sampled channels, the median fraction of positive spatial products supplied by a negative effective gate and negative value was **76.2% at L1** and **82.5% at L4**. Product sign alone therefore does not identify a gate's semantic polarity.
 
 The [signed-tail gallery](signed_tail_gallery.png) shows three channels chosen before capture, one per physical layer, at L1 and L4. It displays the highest and lowest image-mean responses, which need not have opposite signs. No semantic labels were assigned from these examples.
+
+![Highest and lowest responding images for three presampled channels at L1 and L4](signed_tail_gallery.png)
 
 ## Validation and implementation
 

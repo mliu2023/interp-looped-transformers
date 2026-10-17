@@ -28,7 +28,13 @@ Median L1/L4 per-channel image-ranking correlation was **0.138**, with family-bo
 
 GPU job `7517236` completed all 73 forwards. First-image official-logit and full reconstruction errors were zero. CPU job `7517514` verified hashes, dimensions, finite values, all raw-to-pooled arrays, and primary-statistic recomputation. The offline verifier's JSON layer-order handling was corrected and regression tested; collector outputs were preserved. Earlier network failures and their reconciliation remain in the [execution history](results/poles-pilot-20261017/EXECUTION_HISTORY.md).
 
-## Next stages
+## Next research priority: LoopVL training images
+
+The user has specified actual images from LoopVL's training data as the primary dataset. Follow the revised [replication plan](docs/NEURON_REPLICATION_PLAN.md#required-data-loopvls-own-training-images): audit the pinned checkpoint's reported training sources and exact record membership, stage a bounded original-image sample, and run a new 64-image, 48-channel capture across all six L invocations with spatial response maps and native image preprocessing. No new image experiment or dataset download has been run for this revision.
+
+The existing shape pilot remains evidence about generated scenes and capture implementation. Its results are not findings on real training images. Training-image retrieval, source/duplicate manifests, and variable-grid validation still need implementation. Neither CIFAR nor unrelated ImageNet images are the replacement dataset for this primary LoopVL analysis.
+
+## Original study gates and remaining image work
 
 | Stage | State | Required next evidence |
 | --- | --- | --- |
@@ -38,9 +44,9 @@ GPU job `7517236` completed all 73 forwards. First-image official-logit and full
 | Discovery analysis | Pending real inputs | Frozen encoders/readouts and integrated alternative explanation controls |
 | Causal collection | Incomplete implementation | Candidate specific donors, full controls, and short horizon execution |
 | Protocol lock and confirmation | Blocked by preceding scientific gates | Complete discovery evidence, controls, candidate rules, and immutable lock |
-| Goodfire image replication | Exploratory LoopVL signed activity pilot completed and verified | Image training/adapters, semantic pole inspection, compression retraining, memorization trials, and circuits by iteration remain |
+| Goodfire image replication | Shape pilot preserved; primary data direction changed to LoopVL training images | Training-record provenance and real-image capture first; semantic poles, compression retraining, memorization, and circuits by iteration remain |
 
-The original population-study timing and capability pilot remains in the [cluster runbook](docs/CLUSTER_RUNBOOK.md#measure-timing-and-memory). Shared accounting has been reconciled, including job `7501493` and the failed no-ID submission. Total recorded consumption is 0.1406 of 30 GPU hours, with no outstanding reservation after the completed signed activity pilot.
+The original population-study timing and capability protocol remains in the [cluster runbook](docs/CLUSTER_RUNBOOK.md#measure-timing-and-memory) as a separate workflow; it is not the next training-image experiment. Shared accounting has been reconciled, including job `7501493` and the failed no-ID submission. Total recorded consumption is 0.1406 of 30 GPU hours, with no outstanding reservation after the completed signed activity pilot.
 
 ## Remaining implementation
 

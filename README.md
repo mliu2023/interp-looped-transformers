@@ -1,12 +1,12 @@
 # Recurrent neuron transfer study
 
-This project measures whether semantic selectivity, linear readouts, and causal effects of the same physical LoopVL neurons transfer across recurrent passes. It uses controlled 2D scenes with paired edits and independent scene family splits.
+This project measures whether semantic selectivity, linear readouts, and causal effects of the same physical LoopVL neurons transfer across recurrent passes. The primary next experiments use images from the training data of the pinned LoopVL checkpoint. Controlled 2D scenes remain engineering fixtures and historical pilot data.
 
 Work directly in the editable cluster checkout at `/oscar/home/mliu171/reuseinterp-loopvl/source`. Jobs execute frozen snapshots. [PROGRESS.md](PROGRESS.md) records the current validation gates and remaining work; [CLUSTER_RUNBOOK.md](docs/CLUSTER_RUNBOOK.md) contains the operating commands.
 
 ## Current evidence
 
-The saved GPU numerical smoke passed 64 checks on 16 examples. It validates official inference parity and basic capture/intervention behavior at physical layer 0, channel 0. Task competence, population capture, transfer estimates, and candidate specific causal experiments remain pending. The next stage is the 32 example timing and memory pilot.
+The saved GPU numerical smoke passed 64 checks on 16 examples. It validates official inference parity and basic capture/intervention behavior at physical layer 0, channel 0. Task competence, population capture, transfer estimates, and candidate specific causal experiments remain pending. The next image-neuron study starts with training-image provenance and a 64-original-image LoopVL capture pilot, as specified in the [replication plan](docs/NEURON_REPLICATION_PLAN.md#required-data-loopvls-own-training-images).
 
 One exploratory signed-response experiment has also completed: 48 MLP channels on 64 synthetic images across all six L invocations. Median L1/L4 image-response ranking correlation was 0.138 (family-bootstrap 95% interval 0.065–0.200). Both signed image means occurred in 6/48 channels at L1 and 17/48 at L4. This does not establish semantic poles. The [experiment report](results/poles-pilot-20261017/REPORT.md) includes the verified statistics, gallery, and compact data needed to recompute the results.
 
@@ -20,10 +20,10 @@ source recovery-cu128-20261016/cluster.env
 source "$REUSE_ENV_DIR/bin/activate"
 cd "$REUSE_SOURCE_DIR"
 export REUSE_SUBMITTER="$REUSE_SOURCE_DIR/scripts/slurm/submit.py"
-python "$REUSE_SUBMITTER" baseline --config configs/pilot.yaml --pilot --dry-run
+python "$REUSE_SUBMITTER" account
 ```
 
-This prints the proposed timing pilot submission without submitting it. Follow the runbook for accounting, script review, submission, and subsequent gates. The editable submitter includes the recovery fix; model jobs continue to use the existing frozen snapshot. Installation and staging are already complete for this checkout.
+This prints the recorded shared GPU budget. Follow the replication plan for training-image staging and the new real-image protocol, and the runbook for scheduler accounting, script review, and submission. The existing `poles-pilot.yaml` freezes the old shape experiment; it is not a real-image configuration. Runtime installation is complete, while the requested training-image pool and its capture adapter remain to be prepared.
 
 ## Code and artifacts
 

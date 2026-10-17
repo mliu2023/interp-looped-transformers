@@ -1,10 +1,56 @@
 # Image neuron replication and recurrent computation study
 
-Revised October 17, 2026 for an implementation agent working with Max Liu.
+Revised October 17, 2026 for an implementation agent working with Max Liu. Dataset direction updated at the user's request: use the actual images used to train LoopVL.
 
-Reproduce image model experiments on positive and negative neuron poles, single layer compression followed by retraining, memorization, and circuits. Then test how each phenomenon depends on the current iteration of a looped vision model. Use frozen LoopVL as a transfer study after validating the methods in image classifiers whose training and architecture we control.
+Reproduce image model experiments on positive and negative neuron poles, single layer compression followed by retraining, memorization, and circuits, carrying the loop iteration axis through each experiment. The immediate priority is the pinned LoopVL checkpoint on images from its own training data. Start with training-data provenance and real-image capture; training new small classifiers is not a prerequisite for this analysis.
 
 This replaces the earlier Qwen first plan. Training small vision models, adapting individual image labels, and testing narrow representations are required parts of this study. They supersede the earlier exclusion of training for this extension. Preserve the original frozen LoopVL protocol and results under their existing identities. The [original scientific protocol](../CODEX_PLAN.md) supplies useful transfer statistics and controls; the new image experiments need their own model specific protocols and gates.
+
+## Required data: LoopVL's own training images
+
+The primary image pool must come from the training data of `TierFlow/LoopVL` checkpoint revision `92aa28bc678f523f8641fdb2f9e5159f614d1c02`, using code revision `6c14bed1d62fbecb559d5902459c6093c38da405`. Generic photographs from another collection do not satisfy this direction. CIFAR, an independently chosen ImageNet subset, and the generated shape scenes are not default substitutes. Reference experiments that specifically require ImageNet remain a separate reproduction track.
+
+The [LoopVL paper, Figure 4 and Sections 3–4](https://arxiv.org/html/2609.38426#S3), identifies these sources:
+
+| LoopVL training stage | Reported image-bearing source | Retrieval and provenance requirement |
+| --- | --- | --- |
+| Visual-language alignment | LLaVA-559K WebDataset | Resolve the exact release and shards; do not silently equate its reported size with a differently named LLaVA release |
+| Multimodal mid-training | OneVision-1.5 Mid-Training-85M | Start with the [released corpus](https://huggingface.co/datasets/mvp-lab/LLaVA-OneVision-1.5-Mid-Training-85M); recover the revision and retained-record mapping used by LoopVL |
+| Supervised fine-tuning | OneVision-1.5 Instruct-22M | Audit the [released instruction corpus](https://huggingface.co/datasets/mvp-lab/LLaVA-OneVision-1.5-Instruct-Data) against the paper's version and mixture |
+| Supervised fine-tuning | OneVision Spatial-4M | Resolve the exact release and component image IDs |
+| Supervised fine-tuning | LLaVA v1.5 Mix665K | Resolve instruction records to their original image assets; a source dataset name alone is insufficient |
+| Supervised fine-tuning and reinforcement learning | Vision-R1-Cold and Vision-R1-RL | Keep stage membership and original image/question records separate |
+
+This table describes the paper's reported pipeline. Establish which stages produced the pinned checkpoint, including whether it is a base, instruction-tuned, or post-RL release; a corpus used for another variant or a later stage does not establish exposure here. Record the trainable parameter groups at each included stage. In particular, the alignment stage freezes the recurrent backbone and vision encoder, so alignment exposure must not be described as updating the sampled L channels. Prioritize mid-training or instruction records from stages in this checkpoint's verified lineage where those channels were trainable.
+
+Begin with photographs from the documented mid-training and instruction sources. Identify photographs by recorded source components or a documented content audit, without selecting images based on neuron responses. Documents, diagrams, spatial examples, and other original training-image types can form separately reported strata. A photograph-focused subset does not represent the entire multimodal mixture.
+
+The paper reports image/question deduplication and long-response filtering during mid-training. Therefore public-corpus membership does not automatically prove a particular record survived preparation or was consumed by this checkpoint. Its vision encoder also has its own earlier pretraining history; exposure there alone is not evidence of LoopVL multimodal training exposure.
+
+### Establish and record membership
+
+Create a versioned `loopvl_training_images` manifest before scientific capture. For each selected source image record:
+
+- Save the dataset/repository ID, immutable revision, configuration, split, shard, row/key, original image ID, exact file hash, dimensions, and source component. Retain the original image bytes and link all related captions/questions to one image family.
+- Link the record to the pinned checkpoint's verified training stage, data recipe, and any retained-sample manifest or training log. Record exclusions and conversion/filtering rules. Preserve original instructions and answers as metadata; reference answers must not leak into the analysis prompt.
+- Record an explicit provenance level: `confirmed_training_record` when a retained manifest or equivalent evidence establishes inclusion; `reported_corpus_member` when only membership in the paper's named source is established; `unknown` otherwise. Record source-image exposure separately from claims about the exact historical crop or processed tensor.
+- Use confirmed records for results labeled as this checkpoint's actual training-image experiment. If only public-source membership can be established, those images can validate the adapter or support a separately labeled training-source analysis; the requested training-membership result remains pending. Retained-dataset inclusion alone does not prove the optimizer processed that record, and neither establishes memorization. Resolve missing inclusion evidence rather than replacing the dataset with shapes, evaluation benchmarks, or unrelated photographs.
+- Audit duplicate image content across corpora and stages, including resized/recompressed copies and multiple instruction rows. Sampling units and splits are source-image families, not annotation rows or visual patches.
+
+The inspected local model card and weight-packing manifest do not enumerate consumed image IDs. Training-corpus provenance is documented, but exact retained-record manifests and a staged real-image pool still need to be obtained. Save access failures or missing provenance explicitly. The current evaluation-asset download scripts are not evidence that those benchmark images were training inputs.
+
+### Next experiment: a real training-image pilot
+
+1. Audit the releases above and freeze a deterministic, source-stratified sample of **64 distinct source-image families** with confirmed training membership under the definition above. This is 64 original images, not 32 generated base/edit pairs. List the membership evidence for every image and measure staging size before downloading large shards. If membership remains unresolved, apply the weaker-analysis labeling above rather than claiming this target completed.
+2. Keep the previous presampled **48 channels in physical L layers 0, 7, and 15**, and capture the same channels at **all six native L invocations**. Use a new run ID and data fingerprint; the old shape configuration must not be reused as if it described these inputs.
+3. Use the official image processor at the image's native supported aspect ratio and token grid. Verify image-to-token coordinates, header offsets, cropping/merging, and valid visual-token masks per input. Do not force real photographs into the old 192 × 192 or 16 × 16-grid assumptions. Save spatial maps of all four gated-MLP streams, image means, and extrema separately.
+4. Use one frozen common prompt for primary image-response comparisons. Repeat eight images with a prespecified paraphrase; compare the original training instruction in a separately identified control where available. Keep image and prompt fixed when comparing invocations, and never insert the reference response into capture input.
+5. Repeat first-image official-logit and full-MLP reconstruction checks at every selected layer/invocation. Require complete event counts, physical parameter identity, finite arrays, and raw-to-pooled recomputation. A short scheduled feasibility capture must measure native token counts, throughput, peak memory, and output sizes before budgeting the full pilot. Do not inherit the synthetic pilot's allocation or parity gate.
+6. Deliver full-image galleries, highest/lowest-response regions and overlays, and one-channel-by-six-invocation views. Report signed coverage and image-ranking transfer as exploratory activity measurements, with uncertainty resampled by source/duplicate family. Remove the old synthetic `color_edit` endpoint; natural matched-image comparisons and any edited photographs require their own documented pairing and validation.
+
+This first run validates real-image capture; 64 images are not a sufficient retrieval pool for a strong semantic-pole claim. Proposed subsequent interpretation partitions are 1,024 discovery families, 256 calibration families, and 512 confirmation families, disjoint from the smoke sample, subject to measured resource feasibility. Freeze final sizes before semantic confirmation. Grow retrieval depth and inspect both tails without selecting channels or source images after viewing attractive results.
+
+The [completed shape pilot](../results/poles-pilot-20261017/REPORT.md) remains a historical engineering and exploratory result on generated scenes. Its correlations and galleries are not natural-image findings, evidence about LoopVL's training images, or completion of this new pilot. Generated shapes remain useful for unit tests, intervention locality checks, and toy known-ground-truth diagnostics only; they must not become the primary scientific dataset again.
 
 ## Questions and study tracks
 
@@ -15,11 +61,11 @@ This replaces the earlier Qwen first plan. Training small vision models, adaptin
 | Memorization | Teach individual images deliberately wrong existing labels and identify how the change is implemented | Locate when the new behavior appears and which invocations causally mediate it |
 | Circuits | Find and validate signed paths into visual decisions | Unroll the recurrent graph and compare paths, edge usage, and causal effects across iterations |
 
-Run three linked tracks, with distinct claims:
+Run three linked tracks, with distinct claims and the following priority:
 
-1. **Reference image reproduction.** Recover the authors' architecture, preprocessing, checkpoint or training recipe, and evaluation inputs where available. Reproduce the specified image experiments. A different backbone or dataset is a methodological replication and must be labeled accordingly.
-2. **Controlled recurrent vision training.** Train matched tied and untied small vision Transformers, with recorded data and from scratch bottleneck variants. This track carries the architecture comparison, controlled memorization, and iteration interactions.
-3. **Frozen LoopVL transfer.** Apply the validated pole and circuit measurements to visual token MLP channels under fixed images and questions. This checkpoint cannot establish what retraining under compression would learn, or whether a specific original training image was memorized.
+1. **LoopVL on its training images.** First implement the manifest and real-image pilot above, then pole retrieval, spatial maps, and invocation-specific circuit tests under fixed images and questions. This is the primary next experiment; do not defer it until small-classifier training works. Verified membership still does not establish that an image was memorized.
+2. **Controlled training and adaptation.** Use documented subsets of the same training-image sources for matched tied/untied training, from-scratch bottleneck variants, and memorization trials. Add a separately audited LoopVL adaptation path for native-checkpoint experiments where feasible. Small classifiers are controlled analogues, not substitutes for the primary LoopVL analysis.
+3. **Reference image reproduction.** Recover the Goodfire authors' architecture, preprocessing, checkpoints/recipe, and evaluation inputs where available. Preserve their dataset for exact reproductions. Experiments on LoopVL's images with a different backbone or task remain explicitly labeled methodological replications.
 
 Training time and inference iteration are separate axes. Analyze a grid of training checkpoints and invocations; do not call changes within one forward evidence of developmental changes during optimization. Within a checkpoint, shared weights define the same mathematical function. Selectivity and downstream use can still differ across its input states.
 
@@ -45,17 +91,17 @@ Useful starting references are the [medium microscope](https://already-clean.goo
 
 The editable repository is `/oscar/home/mliu171/reuseinterp-loopvl/source`. Read governing `AGENTS.md` instructions, [PROGRESS.md](../PROGRESS.md), the [cluster runbook](CLUSTER_RUNBOOK.md), and the [architecture audit](architecture_audit.md). Use existing staging and recorded gates; do not restart installation because an archived document says it is pending.
 
-The saved LoopVL diagnostic parity covers one physical layer/channel on 16 examples. It does not validate a new training pipeline, input optimization, all visual token sites, or circuit interventions. The current package has no general image classifier trainer or completed circuit discovery executor.
+The saved LoopVL diagnostic parity covers one physical layer/channel on 16 examples. The later shape pilot validated sampled capture sites but used a fixed synthetic grid. Neither validates real-image layout handling, a new training pipeline, input optimization, or circuit interventions. The current package has no general image classifier trainer or completed circuit discovery executor.
 
 | Existing component | Reuse | Addition needed |
 | --- | --- | --- |
 | `capture.py`, `model_adapter.py`, `numerical.py` | Physical identity, invocation traces, reconstruction and locality checks | Image classifier adapters, gradient enabled capture, preactivation/branch observations, new model parity |
-| `data/`, `data/alignment.py` | Deterministic scenes, paired edits, grouped splits and mask validation | Natural image manifests, image family deduplication, curve/texture stimuli and adaptation trial IDs |
+| `data/`, `data/alignment.py` | Grouped splits and token/mask validation patterns; scenes only as fixtures | LoopVL training-image provenance, source/shard adapters, duplicate families, variable image grids, natural-image regions, and adaptation trial IDs |
 | `encoding.py`, `probes.py`, `controls.py`, `statistics.py` | Frozen transfer fits, positive affine calibration, paired controls, grouped uncertainty | Visual tuning, capacity diagnostics, checkpoint by iteration and treatment interactions |
 | `interventions.py`, `pipeline.py` | Product edits, self replacement, donor alignment primitives | Classifier and edge/path edits, adaptation experiments, short horizon collection |
 | `protocol.py`, `shards.py`, `report.py`, `scripts/slurm/` | Immutable protocols, atomic outputs, accounting, recomputation | Training stages, model specific schemas, compact checkpoints, circuit and image reports |
 
-Keep the original LoopVL defaults, family splits, and immutable snapshots intact. New training, adaptation, SAE, visualization, and analysis stages require explicit implementation and scheduled execution; their names below are proposed interfaces, not existing commands.
+Keep original snapshots, results, and synthetic-study splits intact as history. Create independent image manifests, family splits, configurations, run IDs, and gates for the training-image study. New data staging, training, adaptation, SAE, visualization, and analysis stages require explicit implementation and scheduled execution; proposed interfaces below are not existing commands.
 
 ## Models and experimental design
 
@@ -63,11 +109,11 @@ Keep the original LoopVL defaults, family splits, and immutable snapshots intact
 
 Use the reference models for claims about the published experiments. Confirm whether the selected InceptionV1 variant actually matches the reference, including branch concatenation, activation placement, auxiliary classifiers, and any normalization changes. Audit the authors' signed ConvNeXt tensor instead of silently substituting a standard GELU activation.
 
-For an inexpensive implementation pilot, use a small classifier and [CIFAR-100](https://www.cs.toronto.edu/~kriz/cifar.html), whose fine/coarse labels support one check of semantic breadth. CIFAR-10 is an alternative engineering smoke dataset. These are not substitutes for an ImageNet reproduction. Pin the actual data recipe and state which results use which organism. A full three scale sweep is a secondary extension after the four primary experiments work.
+For controlled training that fits the budget, use a bounded, documented subset of LoopVL's training-image sources. Retain original validated task labels or image/question/answer supervision; a classifier-specific label mapping needs an explicit annotation and validation protocol. Do not invent class targets from filenames or silently replace the images with CIFAR or generated shapes. The same images need not make two architectures or objectives equivalent. A full three-scale reference sweep is secondary to the requested LoopVL training-image analysis.
 
 ### Controlled looped Transformer
 
-Proposed pilot defaults are 32 by 32 inputs, patch size 4, hidden width 128, three cell invocations, and a small gated MLP. Select the smallest configuration that passes a declared validation competence screen; freeze the complete architecture before confirmation. These dimensions are engineering starting points, not reported paper settings.
+Choose classifier input resolution, patch size, hidden width, and native invocation count after measuring a small run on the actual training-image subset. Preserve enough image detail for the declared task; the earlier 32 × 32/CIFAR defaults are withdrawn. Select the smallest configuration that passes a declared validation competence screen and freeze the architecture and preprocessing before confirmation. Resizing for a newly trained comparator is explicit and does not replace LoopVL's official native preprocessing.
 
 Create tied and untied versions of the same unrolled classifier graph. Match frontend, positional treatment, physical operations, final head, invocation count, data order, optimizer search budget, and training schedule. Initialize untied copies from cloned initial tied cell weights, then let them diverge. Keep cell normalization parameters and buffers shared when claiming a fully tied cell, or record every exception.
 
@@ -93,9 +139,9 @@ Add an intermediate width if the budget permits. Use full/narrow comparisons wit
 
 ### Data separation
 
-Separate model training data from interpretation discovery, calibration, and confirmation images. Within training, reserve validation data for model selection. Keep all crops, augmentations, paired edits, and near duplicates of an image in one family. Record where an exact reference recipe instead uses training images for retrieval, and supplement it with a separately frozen evaluation set.
+Distinguish original LoopVL exposure, new-model training splits, and interpretation splits. For frozen LoopVL, discovery/calibration/confirmation are disjoint interpretation partitions within the selected LoopVL training-image pool; they are not unseen-model test images. For newly trained comparators, additionally reserve genuinely held-out image families for training validation and test. An image can be held out from a new comparator while having belonged to LoopVL's historical training data. Keep all crops, augmentations, alternate questions, edits, and near duplicates in one family across every partition.
 
-Use natural images for breadth and controlled stimuli for independent changes in shape, curvature/orientation, color, texture, position, and context. The existing 2D scenes can supply controlled tests but do not establish natural image interpretability. Fit descriptions, thresholds, feature decoders, alignments, and causal candidates without opening confirmation outcomes. Sampling tailored to classes or activation tails needs explicit weights for population summaries.
+Use actual training-source photographs as the primary retrieval and interpretation examples. Match natural images on nuisance properties and use carefully validated edits of those images for secondary changes in shape, curvature/orientation, color, texture, position, or context. An edited image is a derived control, not a previously seen training example; record that distinction. Drawn curves or shapes may support auxiliary mechanistic diagnostics but cannot supply the main pole, memorization, or circuit galleries. Fit descriptions, thresholds, feature decoders, alignments, and causal candidates without opening confirmation outcomes. Source-stratified or activation-tail sampling needs explicit weights for population summaries.
 
 ## Experiment 1 Positive and negative poles
 
@@ -111,13 +157,13 @@ Use the native zero and also report centered/normalized diagnostics separately. 
 
 Sample 32 channels per declared early, middle, and late site for the pilot. Use every channel at tiny bottlenecks. Preserve the existing representative LoopVL sample for population work; keep selected case studies separate.
 
-For each channel, checkpoint, and iteration, save both signed tails and ordinary activation ranges, with source image IDs, response maps, the strongest location, full image context, and a receptive field or attribution crop. Maintain distinct image maximum/minimum and spatial mean summaries: extrema can select backgrounds or noise, and spatial pooling can cancel poles. Use one image family as the sampling unit, not thousands of independent patches from it.
+For each channel, checkpoint, and iteration, retrieve both signed tails from the frozen LoopVL training-image pool and save ordinary activation ranges, source record IDs and membership evidence, spatial response maps, the strongest location, full image context, and a receptive-field or attribution crop. Render full photographs with response overlays and crop coordinates, including examples of both poles of the same neuron across all six invocations. Maintain distinct image maximum/minimum and spatial mean summaries: extrema can select backgrounds or noise, and spatial pooling can cancel poles. Use one image family as the sampling unit, not thousands of independent patches from it.
 
 Optimize images for each pole only through a validated differentiable path. Compare unconstrained optimization with a natural example anchored objective, using the same seed count, steps, input parameterization, transformation robustness, and regularization budget. Save all attempts. The anchored objective and its strength must be declared; agreement with its anchor is not independent evidence that the interpretation is right. Counterfactual natural images and held out stimuli remain the main test.
 
 The current LoopVL adapter wraps inference in `no_grad` and capture detaches values. Do not assume it supports feature visualization or training. Add a separate audited gradient mode for small image models. For LoopVL, retrieval and controlled image edits can proceed first; pixel optimization requires differentiable preprocessing, output parity, gradient checks, and a measured memory budget.
 
-Freeze a short explanation of the positive versus negative distinction. Test its predictions on new images, independently manipulated stimuli, and hard negatives matched on class, color, position, and background. Measure both discrimination and ordinary image false positives/negatives. Report class/fine-coarse concentration as a proxy alongside visual tuning and causal results; class entropy is not a definition of polysemanticity.
+Freeze a short explanation of the positive versus negative distinction, using blinded annotation where practical. Test its predictions on separate interpretation families from the same training-image sources, independently manipulated photographs, and natural hard negatives matched on subject, color, position, and background. Measure discrimination and ordinary-image false positives/negatives. Use validated object, scene, attribute, and relation annotations available in the source; do not assume CIFAR-style fine/coarse labels exist. Annotation concentration is a proxy alongside visual tuning and causal results, not a definition of polysemanticity.
 
 ### Iteration comparison
 
@@ -132,6 +178,8 @@ Reuse positive gain and offset calibration on independent calibration images; re
 ### Reproduce actual compression
 
 Implement the reference early and late layer alterations in the asset manifest. Change the relevant parameter shapes and downstream connections, and train each narrowed model from scratch. Include an otherwise identical full width model under the same training recipe. Posthoc channel masking, pruning without retraining, and training only the replacement branch answer separate questions.
+
+For the LoopVL-oriented controlled experiment, full and narrow variants use the same declared training-image subset and supervision. A native LoopVL MLP-width reduction changes the actual gate/up/down parameter shapes at the selected physical site and affects every reuse; retaining the residual/anchor routes makes it a branch-capacity experiment. Training a small comparator on these photographs is a methodological analogue. Fine-tuning a narrowed pretrained LoopVL is also a separate adaptation experiment, not from-scratch reproduction. Cost the native training recipe explicitly before claiming it fits the inherited budget.
 
 Verify that the intended reduced layer is actually used and that auxiliary heads, concatenation paths, residuals, saved states, or skip connections cannot carry information around the declared cut. Measure accuracy/loss, learning curves, convergence, parameter count, spatial resolution, channel count, and cost. Hold a fixed training budget comparison and a declared convergence sensitivity comparison; a poorly optimized narrow model cannot settle how useful representations organize under pressure.
 
@@ -179,6 +227,8 @@ For each width/sharing/seed condition, apply the same pole, tuning, recoverabili
 
 Start from competent clean classifiers and make independent adaptation copies for prespecified image/label pairs. Use an existing output vocabulary and retain the same classifier head shape. Record whether each image appeared in original training, was correctly classified before adaptation, and met a prospectively defined eligibility rule. Do not select pairs because they produce a compelling circuit afterward.
 
+Select LoopVL trial images from the audited training-image manifest, keeping provenance level and duplicate-family membership. Existing instance selectivity on a training-source photograph is not proof of memorization. In a native LoopVL adaptation trial, preserve the image and question and teach a deliberately wrong existing answer string; score assigned-versus-original conditional answer margins with the existing vocabulary. Validate gradient-enabled loading, trainable parameter groups, optimizer state, and a bounded update schedule before this becomes an executable stage. Keep the new forced association separate from any claim about what the original checkpoint memorized.
+
 For the exact reference target, use the published image/label setting if its input and recipe can be recovered. For the controlled study, sample multiple independent pairs across source/target classes and semantic distances. Pair identities and adaptation variants stay together. Confirmation adaptation trials use new image identities, with candidate selection and analysis rules already frozen. Training on the designated trial image is the deliberate intervention, not an accidental interpretation split leak.
 
 Compare wrong label adaptation with correct label adaptation and a matched sham/no update copy. Keep optimizer state initialization, updates, augmentations, and batch/replay treatment explicit. The main comparison trains the same parameter groups as the reference recipe when known. Add head only adaptation as a localization control; a frozen head variant can test whether the trunk can implement the change. Do not silently force route reuse by excluding the head from every condition.
@@ -205,7 +255,7 @@ A random label subset or noise image training study is a secondary stress test a
 
 ### Build candidate graphs
 
-Start with a few declared class decisions and representative images selected on discovery data. In reference models, audit the published example families where assets permit it. In trained models and LoopVL, use examples for which task competence and the target margin are established.
+Start with a few declared decisions and actual training-image photographs selected on discovery data. In reference models, audit the published example families where assets permit it. In trained models and LoopVL, use examples for which task competence and the target margin are established. Native LoopVL targets are prespecified answer-string or token margins under fixed questions, rather than assuming an image-classifier head. Donor images, counterexamples, and region annotations come from the manifest; do not reuse synthetic object-role IDs as natural-image ground truth.
 
 Use nodes keyed by checkpoint, physical module/layer/channel, iteration, and spatial/token position. Unroll recurrence into execution order: a shared physical channel can appear at several distinct causal nodes. Represent both positive and negative contributions, residual paths, attention mediated transfer, normalization, and classifier/readout boundaries. The image encoder in LoopVL runs outside the recurrent L/H schedule; its channels do not acquire multiple L invocations merely because their outputs are reused.
 
@@ -227,7 +277,7 @@ Measure immediate/short horizon effects after a fixed number of subsequent opera
 
 **Required outputs:** machine readable signed graphs with provenance, selected circuit dossiers, held out intervention rows, matched random controls, restoration curves, and iteration specific causal profiles.
 
-## Apply the measurements to frozen LoopVL
+## Native LoopVL execution and iteration analysis
 
 Keep the official mixed precision and native execution:
 
@@ -237,11 +287,11 @@ L1 L2 L3 H1 L4 L5 L6 H2
 
 Use the same physical L channel across all six invocations. Retain L1/L4 as the primary matched outer cycle comparison, L2/L5 and L3/L6 as secondary comparisons, adjacent L comparisons within cycles, and L3/L4 across H1. These characterize different transitions; a boundary contrast alone cannot identify an H specific cause.
 
-Hold the image, question, preprocessing, visual grid, and token role fixed across comparisons. Repeat images under independently varied questions, with neutral/question paraphrase controls, to distinguish visual selectivity from task conditioning. Keep object pooled visual tokens, individual patches, and the last prompt position separate. Validate mask/grid alignment before causal object claims.
+Hold the training-source image, question, preprocessing, visual grid, and token role fixed across comparisons. Repeat images under independently varied questions, with common-prompt, paraphrase, and original-training-instruction conditions kept separate. Keep whole-image visual summaries, validated region summaries, individual patches, and the last prompt position separate. Source datasets may not supply object masks; annotate or validate regions before making causal object claims, and support variable grids instead of reusing the shape generator's masks.
 
-Apply Experiment 1 and Experiment 4 directly after their LoopVL adapters pass parity/locality checks. Use the original encoder/probe machinery for additional feature transfer estimates and counterfactual color edits. A change in description or causal effect is not by itself superposition.
+Apply Experiment 1 directly after the real-image manifest and capture checks, followed by Experiment 4 when the invocation-local circuit executor passes parity/locality checks. These are primary LoopVL work, not a final transfer after unrelated classifiers. Reuse encoder/probe machinery only with descriptors and controls validated on these images. A change in description or causal effect is not by itself superposition.
 
-LoopVL can characterize existing iteration specific capacity signatures and apparent instance selectivity, but cannot complete Experiment 2 or Experiment 3 without a separately scoped training/adaptation pipeline. Unknown original training membership prevents a verified original data memorization claim. Keep those outcomes on the controlled trained organisms instead of relabeling frozen observations as reproductions.
+Frozen LoopVL can characterize iteration-specific capacity signatures and instance selectivity on the selected training-image sources. Experiments 2 and 3 require the separately audited training/adaptation paths described above; observing the frozen checkpoint cannot replace them. Verified exposure strengthens provenance but still does not establish memorization; unresolved membership must remain visible in every original-memory claim. Controlled trained models can test the corresponding mechanisms on the same image sources, with their different architecture and training history explicit.
 
 ## Statistical and interpretation rules
 
@@ -258,17 +308,17 @@ Predeclare one primary family of comparisons for each of the four experiments an
 
 | Stage | Work | Acceptance evidence |
 | --- | --- | --- |
-| 1 Asset and feasibility audit | Pin references, data, architecture, missing recipes, runtime and shared budget | Reference manifest and a measured scheduled pilot; exact versus methodological scope recorded |
-| 2 Training and capture foundation | Small image classifier trainer, tied/untied graph, signed capture, differentiable preprocessing | Correct checkpoints/resume, deterministic identities, gradient checks, output reconstruction and self/zero parity |
-| 3 Pole measurement | Real example retrieval, controlled stimuli, feature optimization, frozen descriptions | Held out pole/tuning results at every iteration with matched budgets |
-| 4 Compression retraining | Full/narrow models from scratch, branch control and forced cut, recovery tests | Verified cut, adequate learning, real width by iteration results and recovery controls |
-| 5 Memorization | Independent wrong/correct/sham adaptation copies | Learned association denominators, checkpoint by iteration trajectories, selective causal tests |
-| 6 Circuits | Attribution candidates and invocation local edge/path executor | Held out necessity/restoration and matched random controls |
-| 7 LoopVL transfer and synthesis | Validated image methods on native visual token channels; reproducible reports | Exact scope, saved measurements, uncertainty, causal limitations, and model free recomputation |
+| 1 Training-image provenance | Resolve LoopVL's reported sources, revisions, retained records, access, duplicate families, and bounded staging | Image manifest with evidence and explicit membership levels; source-image hashes and declared sample |
+| 2 Native LoopVL photo pilot | 64 original image families, existing 48 channels, native preprocessing, all six invocations | New-site reconstruction/parity, variable-grid validity, complete spatial captures, real-photo galleries, measured cost |
+| 3 Poles and circuit foundation | Expand training-image retrieval pool, freeze interpretation splits/explanations, add invocation-local edits | Held-out interpretation predictions and spatial maps; tested intervention locality, no reliance on shape semantics |
+| 4 Training and compression | Same-image-source full/narrow variants, matched tied/untied graphs, branch control and forced cut | Correct resume/gradients, verified cut, adequate learning, width-by-iteration results and recovery controls |
+| 5 Memorization | Wrong/correct/sham adaptation copies on audited training-source photographs | Exposure provenance, learned association denominators, update-by-iteration trajectories, selective causal tests |
+| 6 Circuit confirmation | Freeze candidate signed paths and natural-image donor controls | Held-out necessity/restoration, matched random circuits, and per-invocation effects |
+| 7 Reference comparison and synthesis | Separate paper-exact reproductions from LoopVL and controlled-model findings | Explicit model/data scope, saved measurements, uncertainty, causal limits, and model-free recomputation |
 
 Experiments can share trained clean checkpoints. Circuit tooling supports the memorization analysis; implement it early enough to collect those trials without ad hoc hooks. Do not call the study complete while requested retraining or memorization remains a plan.
 
-Suggested additions are `vision_models.py`, `train_vision.py`, `data/images.py`, `feature_viz.py`, `capacity.py`, `memorization.py`, and `circuits.py`, plus model specific schemas and report functions. Equivalent organization is acceptable; avoid rewriting the existing LoopVL path before the small pilot works. Add proposed configs for reference images, recurrent training, capacity, memorization, circuits, and frozen LoopVL transfer. Use separate run IDs and manifests for each model, seed, width, and adaptation trial.
+The immediate additions are a training-image provenance/source adapter in `data/images.py`, a separate `loopvl-training-images` configuration, variable-grid capture validation, and full-photo response overlays. Reuse the current collector's physical-identity and reconstruction logic while removing its dependence on synthetic family/version fields and the reducer's required `base`/`color_edit` pairs. Save ordered layer/channel axes as lists alongside arrays rather than inferring them from sorted JSON map keys. Then add `vision_models.py`, `train_vision.py`, `feature_viz.py`, `capacity.py`, `memorization.py`, and `circuits.py` as needed. These names are proposed interfaces. Use separate run IDs and manifests for each model, data protocol, seed, width, and adaptation trial.
 
 Tests should recover known poles and nonlinear gating, reject an unsigned negative pole, detect residual/anchor bypasses, preserve tied identity over invocations, reject image family leakage and changed resume state, localize edits, and recover known causal edges in a toy graph. Training resume must preserve optimizer, schedule, random state, and data order. Loaded model and real intervention checks remain scheduled gates, not conclusions from synthetic fixtures.
 
@@ -278,14 +328,16 @@ Use the current aggregate limit of 30 GPU hours and 20 GiB of research outputs u
 
 Before scaling, measure a short training run, convergence behavior, adaptation learning, feature optimization, graph extraction/intervention costs, memory, and storage growth on the actual backend. Produce a cost table for the reference reproductions, four cell tied/untied width matrix with seeds, and frozen LoopVL analysis. Include contingency and already reserved allocations. The original submitter only knows existing stages; extend its stage classification and shared accounting before new GPU stages run.
 
-Do not assert that full ImageNet retraining and all confirmation seeds fit the inherited budget. If they do not, finish the methodological pilot and publish a measured remaining resource requirement. Mark full reference reproduction or multi seed confirmation pending; do not replace the requested training experiments with frozen hooks and declare success. A smaller dataset/organism can establish a clearly labeled pilot result while preserving the original target.
+Do not download an entire 85M/22M corpus to begin this study. Inspect metadata and archive layout, then stage only the pinned bounded image/shard selection needed for the declared sample, with per-file checksums and measured temporary storage. Large index scans, downloads, deduplication, and preprocessing belong in reviewed scheduled jobs. Keep training-image bytes and raw captures on the cluster; publish compact provenance, summaries, and permitted example assets. Natural-image token counts may exceed those of the shape pilot, so its timing is a starting measurement rather than a throughput guarantee.
+
+Do not assert that full ImageNet or native LoopVL retraining and all confirmation seeds fit the inherited budget. If they do not, finish the methodological pilot and publish a measured remaining resource requirement. Mark full reference reproduction or multi-seed confirmation pending; do not replace the requested training experiments with frozen hooks and declare success. A smaller model trained on a bounded subset of the documented LoopVL image sources can establish a labeled methodological pilot; budget constraints do not authorize substituting an unrelated image corpus.
 
 Follow the cluster runbook and site policy for locks, scheduled heavy work, batch script review, and array approval. This revision changes the research plan; it does not submit jobs. Preserve frozen snapshots, raw results, and the original study's gates. Use a new protocol schema with image/training/circuit controls instead of falsely setting irrelevant old gates to passed.
 
 ## Final package and next agent instruction
 
-Deliver four linked result sections, each containing the conventional image result and its iteration analysis. Include signed pole galleries and prediction matrices; width/accuracy/tuning/recovery plots; adaptation update by iteration heatmaps with causal tests; and unrolled circuit diagrams with held out restoration and random controls. Provide all denominators, seeds, exclusions, failures, effect estimates, uncertainty, resource use, source/asset hashes, and exact recomputation commands.
+Deliver four linked result sections, leading with LoopVL training-image measurements and separating native LoopVL, same-source controlled training, and reference reproductions. Include full-photo signed pole galleries and prediction matrices; width/accuracy/tuning/recovery plots; adaptation-update-by-iteration heatmaps with causal tests; and unrolled circuit diagrams with held-out restoration and random controls. Provide all denominators, image membership evidence, seeds, exclusions, failures, effect estimates, uncertainty, resource use, source/asset hashes, and exact recomputation commands.
 
 The claim ledger must distinguish reproduced reference results, methodological replications, controlled recurrence findings, and frozen LoopVL observations. State whether observed pressure produced coarser judgments, lost distinctions, a supported packing candidate, or insufficient evidence. State whether a learned arbitrary label reused existing routes, changed the head, or remained unresolved.
 
-The next agent should read current progress and this plan, audit reference assets and resource feasibility, and build the smallest trained image experiment that exercises all four measurements. Continue through the declared gates on available authorized resources. Keep training checkpoints separate from inference iterations and carry the iteration axis through every experiment. Report exact missing ingredients or resource requirements without inventing results or silently restoring the superseded Qwen scope.
+The next agent should first audit the pinned LoopVL checkpoint's actual image-training sources and retained-record evidence, freeze the training-image manifest, and implement the 64-original-image LoopVL pilot. Do not start another shape/CIFAR pilot or defer these images until a new classifier is trained. Continue to natural-image pole retrieval and invocation-specific circuit work, then the separately costed compression and memorization training paths. Keep interpretation holdouts distinct from original training exposure, and training checkpoints distinct from inference iterations. Carry the iteration axis through every experiment and report missing provenance, access, implementation, or resources without inventing membership or results.

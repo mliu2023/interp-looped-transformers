@@ -4,12 +4,13 @@ import hashlib
 import io
 from pathlib import Path
 import tempfile
+from types import SimpleNamespace
 import unittest
 
 import numpy as np
 
 from reuseinterp.image_pilot import (STREAMS, load_manifest, ordered_channels,
-                                     primary_statistics, reduce_records, summarize, verify)
+                                     native_token_limits, primary_statistics, reduce_records, summarize, verify)
 from reuseinterp.io import atomic_json, file_hash
 
 
@@ -66,6 +67,7 @@ class NativeArchiveTests(unittest.TestCase):
                 np.savez_compressed(run/artifact, **arrays)
                 records.append({'image_id': f'photo{i}', 'scene_id': f'photo{i}', 'condition': condition,
                                 'grid': [height, width], 'visual_tokens': height*width,
+                                'native_token_limits': {'min_visual_tokens': 1, 'max_visual_tokens': 12},
                                 'artifact': artifact, 'sha256': file_hash(run/artifact), 'counts': {'L': 6, 'H': 2}})
         return spec, rows, records
 
@@ -93,7 +95,9 @@ class NativeArchiveTests(unittest.TestCase):
             spec, rows, records = self.fixture(run)
             pooled = reduce_records(run, spec, rows, records)
             statistics = primary_statistics(run, spec, rows, pooled)
-            summary = dict(statistics, layer_order=[0, 7, 15], capture_validation={'passed': True})
+            limits = {'min_visual_tokens': 1, 'max_visual_tokens': 12}
+            summary = dict(statistics, layer_order=[0, 7, 15], native_token_limits=limits,
+                           capture_validation={'passed': True, 'layout': {'native_token_limits': limits}})
             atomic_json(run/'protocol.json', {'specification': spec})
             atomic_json(run/'image_rows.json', rows)
             atomic_json(run/'capture_index.json', {'records': records, 'complete': True})
@@ -108,6 +112,27 @@ class NativeArchiveTests(unittest.TestCase):
             (run/rows[0]['image_path']).write_bytes(b'changed')
             with self.assertRaisesRegex(ValueError, 'image bytes changed'):
                 verify(run)
+
+
+class NativePolicyTests(unittest.TestCase):
+    def adapter(self):
+        vision = SimpleNamespace(dynamic_resolution=True, min_visual_tokens=256, max_visual_tokens=2048)
+        return SimpleNamespace(model=SimpleNamespace(config=SimpleNamespace(vision=vision)),
+                               processor=SimpleNamespace(min_visual_tokens=256, max_visual_tokens=2048))
+
+    def test_loaded_checkpoint_2048_limit_overrides_the_runtime_1024_default(self):
+        adapter = self.adapter()
+        self.assertEqual(native_token_limits(adapter, 2048),
+                         {'min_visual_tokens': 256, 'max_visual_tokens': 2048})
+        self.assertEqual(native_token_limits(adapter, 1472)['max_visual_tokens'], 2048)
+        with self.assertRaisesRegex(ValueError, 'outside the checkpoint'):
+            native_token_limits(adapter, 2049)
+
+    def test_processor_checkpoint_policy_mismatch_is_rejected(self):
+        adapter = self.adapter()
+        adapter.processor.max_visual_tokens = 1024
+        with self.assertRaisesRegex(ValueError, 'differ from the loaded checkpoint'):
+            native_token_limits(adapter, 1000)
 
 
 class ManifestTests(unittest.TestCase):

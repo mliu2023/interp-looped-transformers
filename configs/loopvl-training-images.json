@@ -100,8 +100,8 @@
     "prompt": "Describe the image briefly.",
     "sample_seed": 20261017,
     "scope": "exploratory_training_source_signed_activity_no_causal_claims",
-    "timing_config_hash": "1c51c0b6d05b1ee0df152328ec6042b639fbda3f2476cf53157f6dc3b3ceb1d9",
-    "timing_run_id": "loopvl-training-source-photos-20261017-timing-v1"
+    "timing_config_hash": "a1c05df174a8fcc2c830e8d27b6aebad2638432daef4d404d8dcd84ead6979a6",
+    "timing_run_id": "loopvl-training-source-photos-20261017-timing-v2"
   },
   "loopvl_dir": "vendor/LoopVL",
   "model_dir": "vendor/LoopVL/model",

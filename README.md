@@ -8,7 +8,7 @@ Work directly in the editable cluster checkout at `/oscar/home/mliu171/reuseinte
 
 The [viewer guide](docs/INTERACTIVE_VIEWER.md) covers local SSH access, portable bundles, and restarting the CPU server. The viewer has physical layer/channel and MLP-stream selectors, response-ranked image galleries, signed spatial overlays across all six L invocations, image-response trajectories, and a clickable rank-transfer scatter. Browsing uses saved captures and no GPU.
 
-The real-image rerun uses 64 original images from the pinned OneVision instruction source: 22 COCO, 21 GQA, and 21 Visual Genome images. Images and provenance are staged; the GPU timing job `7521681` is waiting for resources. The dependent completion pipeline will budget the full capture from measured native-grid timing, verify results, export the viewer, and submit a CPU server. This is a training-source study: exact checkpoint retention of individual images remains unverified. See the [source audit](docs/training_image_sources.md).
+The real-image rerun uses 64 original images from the pinned OneVision instruction source: 22 COCO, 21 GQA, and 21 Visual Genome images. Images and provenance are staged. Initial timing job `7521681` stopped before capture because the new validator assumed a 1,024-token limit; the checkpoint specifies 2,048. The corrected retry reads the actual processor/model limits. The dependent completion pipeline will budget the full capture from measured native-grid timing, verify results, export the viewer, and submit a CPU server. This is a training-source study: exact checkpoint retention of individual images remains unverified. See the [source audit](docs/training_image_sources.md).
 
 On Oscar, print the pipeline status and, when ready, your local connection commands:
 

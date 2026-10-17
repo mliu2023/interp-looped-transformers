@@ -113,7 +113,7 @@
       "storage_bytes": 40000000
     }
   },
-  "run_id": "loopvl-training-source-photos-20261017-timing-v1",
+  "run_id": "loopvl-training-source-photos-20261017-timing-v2",
   "runtime_variant": "native-training-source-image-pilot-v1",
   "seed": 1729,
   "state_layers": [],

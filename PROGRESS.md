@@ -8,7 +8,7 @@ The [activity explorer](docs/INTERACTIVE_VIEWER.md) is implemented with gallerie
 
 CPU jobs `7521391` and `7521638` inspected source metadata and staged 64 original OneVision instruction images (COCO 22, GQA 21, Visual Genome 21), receiving 296,602,377 image-shard bytes under the 500 MiB cap. The [source audit](docs/training_image_sources.md) records limitations. Every selected record is `reported_corpus_member`; the public assets do not establish exact checkpoint retention or historical memorization. Manifest SHA256: `a668b71200d2d433352b8c3ee702402e58a9537fccc131db3f8e21d5177ad7b6`.
 
-GPU timing job `7521681` is queued for the validated RTX A6000 backend. It must pass fresh native-grid official-path and full-MLP checks before the dependent pipeline budgets and submits the 64-image, 48-channel, six-invocation capture. The full protocol fixes eight prompt controls in advance. Verification, browser validation, bundle export, and CPU viewer startup follow a successful capture. No real-image response results are available yet. Print current saved pipeline status and connection commands with `python scripts/viewer_connection.py --experiment-dir /oscar/home/mliu171/reuseinterp-loopvl/experiments/loopvl-training-images-20261017`.
+GPU timing job `7521681` passed the validated RTX A6000 backend preflight, then stopped before capture because the new guard assumed 1,024 tokens while the checkpoint specifies 2,048. Its evidence is preserved. The corrected retry must pass fresh native-grid official-path and full-MLP checks before the dependent pipeline budgets and submits the 64-image, 48-channel, six-invocation capture. The full protocol fixes eight prompt controls in advance. Verification, browser validation, bundle export, and CPU viewer startup follow a successful capture. No real-image response results are available yet. Print current saved pipeline status and connection commands with `python scripts/viewer_connection.py --experiment-dir /oscar/home/mliu171/reuseinterp-loopvl/experiments/loopvl-training-images-20261017`.
 
 ## Verified evidence
 
@@ -38,7 +38,7 @@ GPU job `7517236` completed all 73 forwards. First-image official-logit and full
 
 ## Next research priority: LoopVL training images
 
-The user has specified actual images from LoopVL's training data as the primary dataset. Follow the revised [replication plan](docs/NEURON_REPLICATION_PLAN.md#required-data-loopvls-own-training-images). The source-image pool, provenance adapter, collector, and viewer are now implemented as described above; exact retained-record evidence remains missing, and the real-image capture is queued.
+The user has specified actual images from LoopVL's training data as the primary dataset. Follow the revised [replication plan](docs/NEURON_REPLICATION_PLAN.md#required-data-loopvls-own-training-images). The source-image pool, provenance adapter, collector, and viewer are now implemented as described above; exact retained-record evidence remains missing, and the real-image capture is awaiting the corrected timing check.
 
 The existing shape pilot remains evidence about generated scenes and capture implementation. Its results are not findings on real training images. The new variable-grid validation still requires its scheduled loaded-model check. Neither CIFAR nor unrelated ImageNet images replace the documented training-source photographs.
 
@@ -54,7 +54,7 @@ The existing shape pilot remains evidence about generated scenes and capture imp
 | Protocol lock and confirmation | Blocked by preceding scientific gates | Complete discovery evidence, controls, candidate rules, and immutable lock |
 | Goodfire image replication | Shape pilot preserved; primary data direction changed to LoopVL training images | Training-record provenance and real-image capture first; semantic poles, compression retraining, memorization, and circuits by iteration remain |
 
-The original population-study timing and capability protocol remains in the [cluster runbook](docs/CLUSTER_RUNBOOK.md#measure-timing-and-memory) as a separate workflow. Before the queued native-image timing check, recorded consumption was 0.1406 of 30 GPU hours. The timing allocation reserves at most 0.1667 GPU hours; later submissions must refresh the shared ledger and respect its remaining allowance.
+The original population-study timing and capability protocol remains in the [cluster runbook](docs/CLUSTER_RUNBOOK.md#measure-timing-and-memory) as a separate workflow. After failed timing job `7521681` (160 allocated GPU seconds), recorded consumption is 0.1850 of 30 GPU hours with no unresolved reservation at that accounting refresh. Retries and later submissions must refresh the shared ledger and respect its remaining allowance.
 
 ## Remaining implementation
 

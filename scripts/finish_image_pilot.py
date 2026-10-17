@@ -29,17 +29,29 @@ def timing_bound(summary, records):
     elapsed = [float(record['elapsed_seconds']) for record in primary]
     tokens = [int(record['visual_tokens']) for record in primary]
     total = float(summary['elapsed_seconds'])
-    if any(not math.isfinite(value) or value <= 0 for value in elapsed+[total]) or not all(256 <= n <= 1024 for n in tokens):
+    limits = summary['native_token_limits']
+    minimum, maximum = int(limits['min_visual_tokens']), int(limits['max_visual_tokens'])
+    if minimum < 1 or maximum < minimum:
+        raise ValueError('Timing evidence contains invalid checkpoint token limits')
+    if any(not math.isfinite(value) or value <= 0 for value in elapsed+[total]) or not all(minimum <= n <= maximum for n in tokens):
         raise ValueError('Timing evidence contains invalid elapsed times or native token counts')
+    validation = [record['includes_official_validation'] for record in primary]
+    if any(type(flag) is not bool for flag in validation) or sum(validation) != 1:
+        raise ValueError('Timing evidence must identify its unique official validation forward')
+    normalized = [value/(1+flag) for value, flag in zip(elapsed, validation)]
+    validation_slack = sum(value-per_forward for value, per_forward in zip(elapsed, normalized))
     overhead = max(0., total-sum(elapsed))
-    multiplier = (1024/min(tokens))**2
-    seconds = overhead + 72*max(elapsed)*multiplier*2 + 180
+    multiplier = (maximum/min(tokens))**2
+    seconds = overhead + 72*max(normalized)*multiplier*2 + validation_slack*multiplier*2 + 180
     rounded = int(math.ceil(seconds/300)*300)
     if rounded > 3600:
         raise ValueError(f'Measured conservative allocation requires {rounded} seconds, above the one-hour bound')
     return {'load_and_preparation_overhead_seconds': overhead,
-            'maximum_timing_record_seconds': max(elapsed), 'minimum_timing_visual_tokens': min(tokens),
-            'maximum_full_visual_tokens': 1024, 'quadratic_token_multiplier': multiplier,
+            'maximum_timing_record_seconds': max(elapsed),
+            'maximum_normalized_forward_seconds': max(normalized),
+            'unique_official_validation_slack_seconds': validation_slack,
+            'minimum_timing_visual_tokens': min(tokens), 'native_token_limits': limits,
+            'maximum_full_visual_tokens': maximum, 'quadratic_token_multiplier': multiplier,
             'capture_tasks': 72, 'safety_multiplier': 2, 'additional_slack_seconds': 180,
             'unrounded_wall_seconds': seconds, 'wall_seconds': rounded,
             'reserved_gpu_hours': rounded/3600,
@@ -137,6 +149,16 @@ def run(args):
                  full_config_sha256=file_hash(config_path), full_config_hash=digest(config),
                  expected_timing_config_hash=args.expected_timing_config_hash)
             timing_verification = verify(timing_run)
+            # The timing summary's limits must match immutable checkpoint bytes,
+            # not mutable runtime defaults or an unauthenticated summary edit.
+            model_dir = Path(base.get('REUSE_MODEL_DIR', config.get('model_dir', 'vendor/LoopVL/model')))
+            checkpoint_config = model_dir/'config.json'
+            if file_hash(checkpoint_config) != config['checkpoint_hashes']['config.json']:
+                raise ValueError('Checkpoint configuration bytes changed before resource costing')
+            vision = read_json(checkpoint_config)['loopvl_config']['vision']
+            expected_limits = {key: int(vision[key]) for key in ('min_visual_tokens', 'max_visual_tokens')}
+            if timing_summary['native_token_limits'] != expected_limits:
+                raise ValueError('Timing token limits differ from the hash-pinned checkpoint configuration')
             bound = timing_bound(timing_summary, read_json(timing_run/'capture_index.json')['records'])
             bound.update(timing_summary_sha256=file_hash(timing_run/'summary.json'),
                          timing_protocol_sha256=file_hash(timing_run/'protocol.json'),

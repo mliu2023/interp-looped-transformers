@@ -104,6 +104,19 @@ def load_manifest(specification):
     return result
 
 
+def native_token_limits(adapter, count=None):
+    """Read the checkpoint's policy rather than the runtime class defaults."""
+    vision = adapter.model.config.vision
+    minimum, maximum = int(vision.min_visual_tokens), int(vision.max_visual_tokens)
+    if not vision.dynamic_resolution or minimum < 1 or maximum < minimum:
+        raise ValueError('Invalid checkpoint dynamic visual-token policy')
+    if (int(adapter.processor.min_visual_tokens), int(adapter.processor.max_visual_tokens)) != (minimum, maximum):
+        raise ValueError('Processor visual-token limits differ from the loaded checkpoint configuration')
+    if count is not None and not minimum <= count <= maximum:
+        raise ValueError('Native visual-token count is outside the checkpoint processor range')
+    return {'min_visual_tokens': minimum, 'max_visual_tokens': maximum}
+
+
 def validate_layout(batch, adapter):
     """Check the official single-image resize/grid/prefix contract at runtime."""
     import torch
@@ -123,8 +136,7 @@ def validate_layout(batch, adapter):
         raise ValueError('Effective visual grid does not match the native encoder grid')
     if batch['input_ids'].shape != (1, header + count + instruction):
         raise ValueError('Input sequence does not match the header/image/instruction partition')
-    if not 256 <= count <= 1024:
-        raise ValueError('Native visual-token count is outside the pinned processor range')
+    limits = native_token_limits(adapter, count)
     if type(adapter.processor).__name__ != 'PenguinDynamicResolutionProcessor':
         raise ValueError('This experiment requires the official dynamic-resolution processor')
     device = batch['input_ids'].device
@@ -147,6 +159,7 @@ def validate_layout(batch, adapter):
     return tokens, {
         'grid': [h, w], 'visual_tokens': count, 'header_length': header,
         'instruction_length': instruction, 'token_indices': tokens,
+        'native_token_limits': limits,
         'spatial_layout': {'kind': 'native_resize_row_major', 'effective_grid': [h, w],
                            'encoder_grid': grid[0].tolist(), 'merge_size': int(merge[0]),
                            'exif_transposed': True, 'no_padding': True, 'no_crop': True},
@@ -295,6 +308,12 @@ def verify(run):
         raise ValueError('A completed capture and independent official-path validation are required')
     if summary['layer_order'] != [int(layer) for layer in ordered_channels(specification)]:
         raise ValueError('Saved layer axis differs from the frozen ordered protocol')
+    limits = summary['native_token_limits']
+    if summary['capture_validation']['layout']['native_token_limits'] != limits:
+        raise ValueError('Summary token policy differs from native capture validation')
+    for record in index['records']:
+        if record.get('native_token_limits') != limits or not limits['min_visual_tokens'] <= record['visual_tokens'] <= limits['max_visual_tokens']:
+            raise ValueError('Capture token policy differs from the validated checkpoint policy')
     for row in rows:
         target = run / row['image_path']
         if file_hash(target) != row['image_sha256']:
@@ -438,6 +457,7 @@ def run_pilot(config, run, resume=False):
     started = time.monotonic()
     adapter = LoopVLAdapter(config)
     adapter.model.eval()
+    limits = native_token_limits(adapter)
     atomic_json(run/'loaded_architecture_audit.json', adapter.audit)
     torch.cuda.reset_peak_memory_stats()
     validated_this_attempt = False
@@ -483,6 +503,7 @@ def run_pilot(config, run, resume=False):
         record = {'image_id': row['image_id'], 'scene_id': row['image_id'], 'condition': condition,
                   **layout, 'artifact': artifact.as_posix(), 'sha256': file_hash(target),
                   'counts': observed.counts, 'elapsed_seconds': time.monotonic()-task_start,
+                  'includes_official_validation': validation,
                   'parameter_identity_constant_within_image': True}
         records.append(record)
         done.add((row['image_id'], condition))
@@ -510,6 +531,7 @@ def run_pilot(config, run, resume=False):
         'elapsed_seconds': sum(item.get('elapsed_seconds', 0) for item in execution['attempts']),
         'peak_allocated_vram_bytes': max(item.get('peak_allocated_vram_bytes', 0) for item in execution['attempts']),
         'prompt': specification['prompt'], 'capture_validation': read_json(run/'capture_validation.json'),
+        'native_token_limits': limits,
         'visual_token_counts': [record['visual_tokens'] for record in records if record['condition'] == 'primary'],
         'capture_compressed_bytes': sum((run/record['artifact']).stat().st_size for record in records),
         'token_summary': 'unweighted mean over actual native visual-token products; spatial extrema separately',

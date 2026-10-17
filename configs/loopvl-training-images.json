@@ -1,0 +1,132 @@
+{
+  "bootstrap_resamples": 2000,
+  "checkpoint_hashes": {
+    "config.json": "34ac7636b5c41f95a0729bb45d9ca8a12f7a468a29062fe56141ad611ab7d35c",
+    "generation_config.json": "cac1f7f399b37d2726131ffb74d23fb18997481763b078c5a9092b3c34b45309",
+    "model.safetensors": "4d34dac46592a2ea273556fa29a540de9af8d8e3cff39f6e3e0ba54cd799f72f",
+    "preprocessor_config.json": "02a24f7ffd0e0d44d8c1ca7daeeec0049499477068601ac8bb24ea105ed65ca5",
+    "tokenizer.json": "ba520107dc9b27d25643e8f43fc1d9921038c86d3ada9dcaabf18526c5836d50",
+    "tokenizer_config.json": "260d448d6f45ec227e6ae53ebc793357aacb3eb09575ffa45877bb4930fc106d"
+  },
+  "checkpoint_revision": "92aa28bc678f523f8641fdb2f9e5159f614d1c02",
+  "code_revision": "6c14bed1d62fbecb559d5902459c6093c38da405",
+  "dataset_dir": "/oscar/home/mliu171/reuseinterp-loopvl/datasets/loopvl-training-source-photos-20261017-v1",
+  "dataset_hash": "a668b71200d2d433352b8c3ee702402e58a9537fccc131db3f8e21d5177ad7b6",
+  "descriptor_policy": "Original source images; frozen common prompt; reference answers excluded from capture input",
+  "generation_budget": 1,
+  "gpu_hour_cap": 30,
+  "image_pilot": {
+    "bootstrap_draws": 500,
+    "channels": {
+      "0": [
+        1118,
+        35,
+        2677,
+        1459,
+        102,
+        690,
+        2953,
+        2648,
+        3126,
+        2805,
+        4055,
+        3106,
+        1344,
+        1971,
+        2524,
+        2642
+      ],
+      "15": [
+        1298,
+        2496,
+        3498,
+        3792,
+        670,
+        1255,
+        3426,
+        45,
+        2372,
+        4027,
+        4025,
+        2895,
+        1044,
+        721,
+        1019,
+        3144
+      ],
+      "7": [
+        2890,
+        3284,
+        2629,
+        3515,
+        2476,
+        2998,
+        577,
+        1134,
+        1423,
+        2886,
+        3413,
+        3093,
+        316,
+        2364,
+        2409,
+        2513
+      ]
+    },
+    "epsilon": 1e-06,
+    "image_limit": 64,
+    "layer_order": [
+      0,
+      7,
+      15
+    ],
+    "manifest_path": "/oscar/home/mliu171/reuseinterp-loopvl/datasets/loopvl-training-source-photos-20261017-v1/manifest.json",
+    "manifest_sha256": "a668b71200d2d433352b8c3ee702402e58a9537fccc131db3f8e21d5177ad7b6",
+    "mode": "pilot",
+    "paraphrase": "Briefly describe the picture.",
+    "paraphrase_image_ids": [
+      "gqa_0000648_42dbffb3fbd7",
+      "coco_0000331_c1cc365264c6",
+      "vg_0000165_720f2bd13db8",
+      "coco_0000561_278fe7fbd0cb",
+      "vg_0000076_43f178a0cf11",
+      "gqa_0000312_824842f7001b",
+      "gqa_0000476_23a164e2015f",
+      "gqa_0000626_0a86a02d2d41"
+    ],
+    "parent_gates": "/oscar/home/mliu171/reuseinterp-loopvl/runs/loopvl-transfer-v1/gates.json",
+    "parent_parity_report": "/oscar/home/mliu171/reuseinterp-loopvl/runs/loopvl-transfer-v1/parity_report.json",
+    "parent_study_fingerprint": "b9afb3e5e04fbf4a6560e72909cd5829ca027ac0eda07453d70e47ee37ef9446",
+    "prompt": "Describe the image briefly.",
+    "sample_seed": 20261017,
+    "scope": "exploratory_training_source_signed_activity_no_causal_claims",
+    "timing_config_hash": "1c51c0b6d05b1ee0df152328ec6042b639fbda3f2476cf53157f6dc3b3ceb1d9",
+    "timing_run_id": "loopvl-training-source-photos-20261017-timing-v1"
+  },
+  "loopvl_dir": "vendor/LoopVL",
+  "model_dir": "vendor/LoopVL/model",
+  "neurons_per_layer": 16,
+  "numerical": {
+    "absolute_cap": 0.0001,
+    "absolute_floor": 1e-06,
+    "margin_cap": 1e-05,
+    "margin_floor": 1e-06
+  },
+  "output_gib_cap": 20,
+  "primary_invocations": [
+    "L1",
+    "L4"
+  ],
+  "resource_estimates": {
+    "image-pilot": {
+      "forwards": 73,
+      "scope": "64 original images and 8 prompt controls; allocation computed from authenticated native-grid timing by finish_image_pilot.py before submission",
+      "storage_bytes": 1073741824
+    }
+  },
+  "run_id": "loopvl-training-source-photos-20261017-v1",
+  "runtime_variant": "native-training-source-image-pilot-v1",
+  "seed": 1729,
+  "state_layers": [],
+  "study_fingerprint": "4cc6dc7522de47dff73ec13b3d03af523e130014f047da0f94f36081cd56ffee"
+}

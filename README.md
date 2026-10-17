@@ -4,6 +4,18 @@ This project measures whether semantic selectivity, linear readouts, and causal 
 
 Work directly in the editable cluster checkout at `/oscar/home/mliu171/reuseinterp-loopvl/source`. Jobs execute frozen snapshots. [PROGRESS.md](PROGRESS.md) records the current validation gates and remaining work; [CLUSTER_RUNBOOK.md](docs/CLUSTER_RUNBOOK.md) contains the operating commands.
 
+## Interactive activity explorer
+
+The [viewer guide](docs/INTERACTIVE_VIEWER.md) covers local SSH access, portable bundles, and restarting the CPU server. The viewer has physical layer/channel and MLP-stream selectors, response-ranked image galleries, signed spatial overlays across all six L invocations, image-response trajectories, and a clickable rank-transfer scatter. Browsing uses saved captures and no GPU.
+
+The real-image rerun uses 64 original images from the pinned OneVision instruction source: 22 COCO, 21 GQA, and 21 Visual Genome images. Images and provenance are staged; the GPU timing job `7521681` is waiting for resources. The dependent completion pipeline will budget the full capture from measured native-grid timing, verify results, export the viewer, and submit a CPU server. This is a training-source study: exact checkpoint retention of individual images remains unverified. See the [source audit](docs/training_image_sources.md).
+
+On Oscar, print the pipeline status and, when ready, your local connection commands:
+
+```bash
+python scripts/viewer_connection.py --experiment-dir /oscar/home/mliu171/reuseinterp-loopvl/experiments/loopvl-training-images-20261017
+```
+
 ## Current evidence
 
 The saved GPU numerical smoke passed 64 checks on 16 examples. It validates official inference parity and basic capture/intervention behavior at physical layer 0, channel 0. Task competence, population capture, transfer estimates, and candidate specific causal experiments remain pending. The next image-neuron study starts with training-image provenance and a 64-original-image LoopVL capture pilot, as specified in the [replication plan](docs/NEURON_REPLICATION_PLAN.md#required-data-loopvls-own-training-images).
@@ -23,7 +35,7 @@ export REUSE_SUBMITTER="$REUSE_SOURCE_DIR/scripts/slurm/submit.py"
 python "$REUSE_SUBMITTER" account
 ```
 
-This prints the recorded shared GPU budget. Follow the replication plan for training-image staging and the new real-image protocol, and the runbook for scheduler accounting, script review, and submission. The existing `poles-pilot.yaml` freezes the old shape experiment; it is not a real-image configuration. Runtime installation is complete, while the requested training-image pool and its capture adapter remain to be prepared.
+This prints the recorded shared GPU budget. Follow the replication plan and runbook for scheduler accounting, script review, and submission. The existing `poles-pilot.yaml` freezes the old shape experiment. `loopvl-training-images-timing.json` and `loopvl-training-images.json` define the new native-image checks and full pilot. The staged pool and collector are implemented; completed real-image measurements still depend on the queued GPU jobs.
 
 ## Code and artifacts
 

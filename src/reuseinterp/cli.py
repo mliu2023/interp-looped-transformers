@@ -8,7 +8,7 @@ import platform
 import sys
 from .io import config_load, digest, atomic_json, read_json, file_hash, run_directory
 
-GPU_STAGES = {"validate", "baseline", "capture", "discover-causal", "confirm", "poles-pilot"}
+GPU_STAGES = {"validate", "baseline", "capture", "discover-causal", "confirm", "poles-pilot", "image-pilot"}
 
 
 def _shard_args(args):
@@ -51,7 +51,7 @@ def static_audit(config, directory):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("stage", choices=["audit", "validate", "data", "baseline", "capture", "fit", "discover-causal", "lock", "confirm", "verify-results", "report", "fixtures", "merge", "poles-pilot"])
+    parser.add_argument("stage", choices=["audit", "validate", "data", "baseline", "capture", "fit", "discover-causal", "lock", "confirm", "verify-results", "report", "fixtures", "merge", "poles-pilot", "image-pilot"])
     parser.add_argument("--config")
     parser.add_argument("--run-dir")
     parser.add_argument("--num-shards", type=int, default=1)
@@ -101,6 +101,11 @@ def main(argv=None):
                 raise ValueError("Signed-activity pilot requires a singleton allocation")
             from .poles import run_pilot
             result = run_pilot(config, directory)
+        elif args.stage == "image-pilot":
+            if args.num_shards != 1:
+                raise ValueError("Real-image pilot requires a singleton allocation")
+            from .image_pilot import run_pilot
+            result = run_pilot(config, directory, resume=args.resume)
         elif args.stage == "validate":
             if args.num_shards != 1:
                 raise ValueError("Numerical smoke is a single scheduled GPU job")

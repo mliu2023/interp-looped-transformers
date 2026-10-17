@@ -17,7 +17,7 @@ import sys
 import tempfile
 import uuid
 
-GPU_STAGES = {'validate', 'baseline', 'capture', 'discover-causal', 'confirm', 'poles-pilot'}
+GPU_STAGES = {'validate', 'baseline', 'capture', 'discover-causal', 'confirm', 'poles-pilot', 'image-pilot'}
 CPU_STAGES = {'audit', 'data', 'fit', 'lock', 'merge', 'report', 'verify-results', 'fixtures'}
 ARRAY_STAGES = {'baseline', 'capture', 'confirm'}
 ENV_NAMES = ('REUSE_PROJECT_DIR', 'REUSE_ENV_DIR', 'REUSE_RUN_ROOT', 'REUSE_CACHE_ROOT',
@@ -115,6 +115,27 @@ def budget(ledger):
 def gate_errors(stage, config, path, pilot=False):
     if stage == 'validate' or stage not in GPU_STAGES:
         return []
+    if stage == 'image-pilot':
+        # This separate image protocol checks native-grid capture parity inside
+        # its own allocation. Authenticate the parent backend evidence without
+        # copying its population gates or reusing its synthetic study identity.
+        specification = config.get('image_pilot', {})
+        try:
+            if path.resolve() != Path(specification['parent_gates']).resolve():
+                return ['Image pilot must use its declared parent parity gates']
+            gates = read_json(path)
+            parity = gates.get('parity', {})
+            parent = specification['parent_study_fingerprint']
+            if not parent or gates.get('study_fingerprint') != parent or parity.get('study_fingerprint') != parent:
+                return ['Parent parity study identity missing or mismatched']
+            if not config.get('study_fingerprint') or config['study_fingerprint'] == parent:
+                return ['Real-image protocol requires its own study identity']
+            report = Path(specification['parent_parity_report'])
+            if parity.get('passed') is not True or read_json(report).get('passed') is not True or digest(report) != parity.get('report_sha256'):
+                return ['Parent parity report missing, failed, or changed']
+            return []
+        except (KeyError, ValueError, OSError) as exc:
+            return [f'Invalid image-pilot parent parity evidence: {exc}']
     if not path.is_file():
         return [f'No completed prerequisite gates: {path}']
     gates = read_json(path)
@@ -201,7 +222,12 @@ def build_submission(args):
     selected = indices(args.indices, args.num_shards) if is_array else [0]
     if args.concurrency < 1:
         raise ValueError('--concurrency must be positive')
-    gates_path = Path(args.gates) if args.gates else Path(environment['REUSE_RUN_ROOT']) / run_id / 'gates.json'
+    if args.gates:
+        gates_path = Path(args.gates)
+    elif args.stage == 'image-pilot':
+        gates_path = Path(config.get('image_pilot', {}).get('parent_gates', 'missing-parent-gates.json'))
+    else:
+        gates_path = Path(environment['REUSE_RUN_ROOT']) / run_id / 'gates.json'
     errors = gate_errors(args.stage, config, gates_path, pilot=args.pilot)
     # A GPU/backend change must trigger a fresh numerical validate run.
     environment['REUSE_EXPECTED_BACKEND'] = ''

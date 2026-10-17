@@ -1,0 +1,30 @@
+{
+  "browser": {
+    "gallery_cards": 8,
+    "javascript_errors": [],
+    "overlays": 6,
+    "passed": true,
+    "screenshot": "/oscar/home/mliu171/reuseinterp-loopvl/experiments/loopvl-training-images-20261017/browser-check-v2/screenshot.png",
+    "selected_channel": "3284",
+    "selected_invocation": "6",
+    "selected_layer": "7",
+    "selected_stream": "product"
+  },
+  "export": {
+    "bundle_dir": "/oscar/home/mliu171/reuseinterp-loopvl/experiments/loopvl-training-images-20261017/browser-check-v2/bundle",
+    "bytes": 36358586,
+    "images": 64,
+    "manifest_sha256": "8257be8de72b9734fba3d3a30ab38814719d5e2ae4535746d9275c1041a0872f",
+    "physical_channels": 48
+  },
+  "passed": true,
+  "screenshot_sha256": "22ceb0548aa915b8377644326802fbfaef8aa594fbbdd8cb607d5c8300646288",
+  "slurm_job_id": "7521735",
+  "validation_script_sha256": "167a4efbe33f7aa1467b58037fd34f7da4a2498a29cb1f162aa6edc42e8c9f79",
+  "verification": {
+    "images": 64,
+    "passed": true,
+    "primary_statistics_sha256": "0467604bcde0138a9bfa164f1c44f958e5de3f75c04f1a739904e8209a4d38b4"
+  },
+  "scope": "Browser UI validation against historical saved synthetic captures; no new real-image response measurements"
+}

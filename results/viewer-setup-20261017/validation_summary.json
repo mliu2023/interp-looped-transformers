@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "tests": 164,
+  "slurm_job_id": "7522075",
+  "source_commit": "d378ae9",
+  "snapshot_sha256": "04d96aecdc5928bcaed3f2ec53d72f2fb169e1a30003a2864519e55e1777dad4",
+  "test_log_sha256": "0c27c39859621e271c1ce4ee4146513bdbf732c90a09daf220bc67c20a441c21",
+  "browser_job_id": "7521735",
+  "browser_passed": true,
+  "browser_scope": "Browser UI validation against historical saved synthetic captures; no new real-image response measurements",
+  "timing_job_id": "7522110",
+  "controller_job_id": "7522111",
+  "real_image_measurements_available": false
+}

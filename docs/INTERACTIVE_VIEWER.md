@@ -8,6 +8,19 @@ The blue/red overlay has one symmetric scale across **every image and all six in
 
 Source evidence, original image hashes, the exact prompt, capture-validation evidence, and limitations are visible in the interface. High/low tails can have the same sign. Signs and rankings alone do not establish semantic poles, circuits, memorization, or superposition. A run labeled `training-source` can contain reported-corpus members whose exact consumption by this checkpoint remains unverified; inspect each image's membership evidence. The older shapes run is explicitly labeled historical.
 
+## Current rerun
+
+The 64-image source pool is staged. Timing job `7522110` and dependent pipeline job `7522111` have been submitted. The pipeline validates measured feasibility, submits the full capture, then schedules verification and viewer startup. Failures stop the chain and remain in the saved state; there is no automatic GPU retry. The [setup report](../results/viewer-setup-20261017/REPORT.md) records completed checks and current limitations.
+
+On Oscar, use this exact command for the saved status and connection instructions:
+
+```bash
+python /oscar/home/mliu171/reuseinterp-loopvl/source/scripts/viewer_connection.py \
+  --experiment-dir /oscar/home/mliu171/reuseinterp-loopvl/experiments/loopvl-training-images-20261017
+```
+
+Before the controller starts, the helper reads `queued_state.json`; afterward it prefers `pipeline_state.json`. The scientific report is generated at `/oscar/home/mliu171/reuseinterp-loopvl/runs/loopvl-training-source-photos-20261017-v1/report.md`. The verified bundle and browser check are generated under `/oscar/home/mliu171/reuseinterp-loopvl/experiments/loopvl-training-images-20261017/analysis-v1/`. These outputs do not yet exist while the GPU stages are pending.
+
 ## Create a portable bundle
 
 Use the existing environment and run this export in a CPU allocation after collection finishes. It requires a complete `capture_index.json`, `protocol.json`, `image_rows.json`, and raw captures. It verifies recorded image/raw hashes and recomputes all four streams' spatial means directly from the raw arrays. It rejects incompatible token grids, cropped/padded layouts, missing records, or nonfinite activations.

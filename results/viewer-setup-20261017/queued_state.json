@@ -1,0 +1,11 @@
+{
+  "status": "waiting_for_timing",
+  "timing_job_id": "7522110",
+  "controller_job_id": "7522111",
+  "run_root": "/oscar/home/mliu171/reuseinterp-loopvl/runs",
+  "experiment_dir": "/oscar/home/mliu171/reuseinterp-loopvl/experiments/loopvl-training-images-20261017",
+  "snapshot_sha256": "04d96aecdc5928bcaed3f2ec53d72f2fb169e1a30003a2864519e55e1777dad4",
+  "full_run": "/oscar/home/mliu171/reuseinterp-loopvl/runs/loopvl-training-source-photos-20261017-v1",
+  "timing_run": "/oscar/home/mliu171/reuseinterp-loopvl/runs/loopvl-training-source-photos-20261017-timing-v2",
+  "created_utc": "2026-10-17T20:03:34.627782+00:00"
+}

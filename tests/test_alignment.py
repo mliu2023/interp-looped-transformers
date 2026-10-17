@@ -2,6 +2,7 @@
 
 import ast
 import json
+import os
 from pathlib import Path
 from types import SimpleNamespace
 import tempfile
@@ -45,7 +46,9 @@ class MaskAlignmentTests(unittest.TestCase):
     def test_upstream_patchify_row_major_with_merge_one(self):
         # Execute the actual vendored _preprocess method in isolation. Tiny
         # adapters replace library utilities, avoiding transformers/model loads.
-        source = Path(__file__).resolve().parents[1] / "vendor/LoopVL/runtime/penguin_encoder/image_processing_penguinvl.py"
+        upstream = Path(os.environ.get("REUSE_LOOPVL_DIR",
+                                       str(Path(__file__).resolve().parents[1] / "vendor/LoopVL")))
+        source = upstream / "runtime/penguin_encoder/image_processing_penguinvl.py"
         if not source.exists():
             self.skipTest("upstream checkout unavailable; source contract pending")
         tree = ast.parse(source.read_text())

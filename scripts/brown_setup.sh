@@ -30,7 +30,9 @@ REUSE_SETUP_PYTHON="$("$REUSE_SETUP_BASE/bootstrap/bin/uv" python find --managed
   --base-dir "$REUSE_SETUP_BASE" --source-dir "$REUSE_SETUP_SOURCE" --python "$REUSE_SETUP_PYTHON"
 "$REUSE_SETUP_PYTHON" "$REUSE_SETUP_SOURCE/scripts/cluster_setup.py" install \
   --base-dir "$REUSE_SETUP_BASE" \
-  --torch-index-url "${REUSE_TORCH_INDEX_URL:-https://pypi.org/simple}"
+  --torch-index-url "${REUSE_TORCH_INDEX_URL:-https://download.pytorch.org/whl/cu128}" \
+  --torch-version "${REUSE_TORCH_VERSION:-2.8.0+cu128}" \
+  --torchvision-version "${REUSE_TORCHVISION_VERSION:-0.23.0+cu128}"
 "$REUSE_SETUP_BASE/venv/bin/python" "$REUSE_SETUP_SOURCE/scripts/cluster_setup.py" stage \
   --base-dir "$REUSE_SETUP_BASE"
 "$REUSE_SETUP_BASE/venv/bin/python" "$REUSE_SETUP_SOURCE/scripts/cluster_setup.py" freeze \

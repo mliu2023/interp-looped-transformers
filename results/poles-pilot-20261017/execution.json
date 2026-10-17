@@ -1,0 +1,100 @@
+{
+  "recorded_utc": "2026-10-17T17:04:28.552043+00:00",
+  "status": "completed_exploratory_pilot_verified",
+  "run_id": "loopvl-poles-pilot-20261017",
+  "gpu_job": {
+    "job_id": "7517236",
+    "tasks": {
+      "0": {
+        "allocated_gpus": 1,
+        "elapsed_seconds": 213,
+        "state": "COMPLETED"
+      }
+    },
+    "reservation_id": "850b14b076bb4697adb788b4d1501fd0",
+    "gpu_hours": 0.059166666666666666
+  },
+  "cpu_verification_job": {
+    "job_id": "7517514",
+    "sbatch_wait_exit_code": 0,
+    "rank_serialization_tests": 3,
+    "tests_passed": true
+  },
+  "collector_snapshot": {
+    "path": "/oscar/home/mliu171/reuseinterp-loopvl/experiments/loopvl-poles-pilot-20261017/snapshot",
+    "sha256": "94b282380e13efc499c530256a9276632732c206826511d970e6d09ffd55584d",
+    "config_sha256": "e6d3cff8917994f74d2598231d21183345c7bcc2efd6df30cb7e99ef2bbd4562"
+  },
+  "analysis_manifest": {
+    "path": "/oscar/home/mliu171/reuseinterp-loopvl/experiments/loopvl-poles-pilot-20261017/analysis-v1/manifest.json",
+    "sha256": "a1ba0232c270769aeb014c930b52ea1ee8e7829d5708527a0865e3fa01734d0e"
+  },
+  "verification": {
+    "layer_order_restored_from_recorded_capture_list": [
+      "0",
+      "7",
+      "15"
+    ],
+    "passed": true,
+    "pooled_arrays_exactly_reproduce_raw_captures": true,
+    "primary_statistics": {
+      "images": 64,
+      "passed": true,
+      "primary_statistics_sha256": "0467604bcde0138a9bfa164f1c44f958e5de3f75c04f1a739904e8209a4d38b4"
+    },
+    "raw_capture_files_verified": 72,
+    "raw_shapes_and_finiteness_passed": true,
+    "verification_script_sha256": "ea82498a2738d6d49883725dec21982ff046a8db0fae40f46a053448597ebefc"
+  },
+  "result_files": {
+    "summary.json": {
+      "path": "/oscar/home/mliu171/reuseinterp-loopvl/runs/loopvl-poles-pilot-20261017/summary.json",
+      "sha256": "fad47900c2b639fe19d5f23f57387ff142f14e78471c12dfefbd5e26766d2c4a"
+    },
+    "per_neuron.csv": {
+      "path": "/oscar/home/mliu171/reuseinterp-loopvl/runs/loopvl-poles-pilot-20261017/per_neuron.csv",
+      "sha256": "8937a62fc01a00a4832b1fe152a0b1e57e2b8771a5612b5982242b83e76c27b7"
+    },
+    "capture_validation.json": {
+      "path": "/oscar/home/mliu171/reuseinterp-loopvl/runs/loopvl-poles-pilot-20261017/capture_validation.json",
+      "sha256": "263f8a8d5db393fd16f859f84b812b680a23d693d9750bb997bd8912d634f581"
+    },
+    "capture_index.json": {
+      "path": "/oscar/home/mliu171/reuseinterp-loopvl/runs/loopvl-poles-pilot-20261017/capture_index.json",
+      "sha256": "095925a328c1d5301252dc37049242355abdb1e5ace8528c33228bc23a581aaa"
+    },
+    "pooled_measurements.npz": {
+      "path": "/oscar/home/mliu171/reuseinterp-loopvl/runs/loopvl-poles-pilot-20261017/pooled_measurements.npz",
+      "sha256": "d77e194f4432ca560528270d5aaba697335702a5acead355347925c22a76396e"
+    },
+    "descriptive_context.json": {
+      "path": "/oscar/home/mliu171/reuseinterp-loopvl/runs/loopvl-poles-pilot-20261017/descriptive_context.json",
+      "sha256": "7ba5a0f6edd7e3fac44b8ba60d089f1b81356af418b050c1e8270a833049cdee"
+    },
+    "verification.json": {
+      "path": "/oscar/home/mliu171/reuseinterp-loopvl/runs/loopvl-poles-pilot-20261017/verification.json",
+      "sha256": "9c06f846ac812e64ad45c75bb684dbd207ca221a8e4d2265346c433089a8db41"
+    },
+    "signed_tail_gallery.png": {
+      "path": "/oscar/home/mliu171/reuseinterp-loopvl/runs/loopvl-poles-pilot-20261017/signed_tail_gallery.png",
+      "sha256": "f3679a4f7877c8d628e2a93cd2feda9d78cb2c5c137ea479437c085c0f41829b"
+    }
+  },
+  "scope": {
+    "images": 64,
+    "families": 32,
+    "physical_channels": 48,
+    "L_invocations": 6,
+    "total_model_forwards": 73
+  },
+  "primary_result": {
+    "median_l1_l4_image_ranking_spearman": 0.1377518315018315,
+    "family_bootstrap_95_interval": [
+      0.06497377137387507,
+      0.2000805833687971
+    ],
+    "semantic_poles_established": false
+  },
+  "population_study_gates_changed": false,
+  "collector_outputs_changed_during_verification": false
+}

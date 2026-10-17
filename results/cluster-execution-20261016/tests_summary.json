@@ -1,0 +1,13 @@
+{
+  "tests_run": 49,
+  "failures": 0,
+  "errors": 0,
+  "skips": 0,
+  "passed": true,
+  "patterns": [
+    "test_cluster_setup.py",
+    "test_cuda_recovery.py",
+    "test_slurm.py"
+  ],
+  "scope": "standard-library setup/recovery/Slurm engineering tests only; no model execution"
+}

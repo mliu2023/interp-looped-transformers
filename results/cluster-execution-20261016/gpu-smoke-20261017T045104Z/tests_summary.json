@@ -1,0 +1,8 @@
+{
+  "tests_run": 34,
+  "failures": 0,
+  "errors": 0,
+  "skips": 0,
+  "passed": true,
+  "scope": "lightweight scheduler guard regressions and upstream mask patch-order checks"
+}

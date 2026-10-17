@@ -1,0 +1,69 @@
+{
+  "accounting_history": [
+    {
+      "sha256": "77ddfe6820aa0fa9fc07c2f2b7be9a81b9a99e89d0d850360985519d10a9c3e0",
+      "source": "/oscar/home/mliu171/reuseinterp-loopvl/runs/scheduler-accounting/e852e721415a46ffbbbaf3266abfc2a6.sacct.txt",
+      "utc": "2026-10-16T22:34:42.002308+00:00"
+    }
+  ],
+  "gpu_hour_cap": 30.0,
+  "jobs": [
+    {
+      "command": [
+        "sbatch",
+        "--parsable",
+        "--no-requeue",
+        "--partition=gpu-debug",
+        "--cpus-per-task=8",
+        "--mem=32G",
+        "--time=01:00:00",
+        "--output=/oscar/home/mliu171/reuseinterp-loopvl/runs/logs/%j.out",
+        "--error=/oscar/home/mliu171/reuseinterp-loopvl/runs/logs/%j.err",
+        "--export=REUSE_PROJECT_DIR=/oscar/home/mliu171/reuseinterp-loopvl/snapshot,REUSE_ENV_DIR=/oscar/home/mliu171/reuseinterp-loopvl/venv,REUSE_RUN_ROOT=/oscar/home/mliu171/reuseinterp-loopvl/runs,REUSE_CACHE_ROOT=/oscar/home/mliu171/reuseinterp-loopvl/cache,REUSE_LOOPVL_DIR=/oscar/home/mliu171/reuseinterp-loopvl/LoopVL,REUSE_MODEL_DIR=/oscar/home/mliu171/reuseinterp-loopvl/model,REUSE_SITE_ENV=,REUSE_CACHE_READY=1,REUSE_DTYPE=auto,REUSE_MIN_VRAM_GIB=0,REUSE_EXPECTED_SNAPSHOT_SHA256=1c89a64561e9348f7588e12f452243827f4d8e5ea6c2bda6b90442d2c925b3ab,REUSE_EXPECTED_BACKEND=",
+        "--account=default",
+        "--qos=gpu-debug",
+        "--gres=gpu:nvidia_rtx_a6000:1",
+        "/oscar/home/mliu171/reuseinterp-loopvl/snapshot/scripts/slurm/run_gpu.sbatch",
+        "validate",
+        "--config",
+        "/oscar/home/mliu171/reuseinterp-loopvl/snapshot/configs/smoke.yaml"
+      ],
+      "config_hash": "5fa54a5be4a50db9576e37b99fe3bbecc144cd52b7e1e2ed0f54542068c3ef44",
+      "configured_gpu_hour_cap": 30.0,
+      "created_utc": "2026-10-16T22:17:54.908162+00:00",
+      "estimates": {
+        "forwards": "at least 16 examples; repeated official/capture/self/zero/dose; token count measured by pilot",
+        "max_gpu_hours": 1.0,
+        "measured_estimates_available": true,
+        "storage_bytes": 50000000
+      },
+      "gate_errors": [],
+      "is_array": false,
+      "job_id": "7489067",
+      "kind": "gpu",
+      "num_shards": 1,
+      "reservation_id": "2e6e09aa40fc4667bd6570fd78e6b40c",
+      "run_id": "loopvl-transfer-v1",
+      "sbatch_returncode": 0,
+      "sbatch_stderr": "",
+      "sbatch_stdout": "7489067",
+      "selected_indices": [
+        0
+      ],
+      "snapshot_sha256": "1c89a64561e9348f7588e12f452243827f4d8e5ea6c2bda6b90442d2c925b3ab",
+      "stage": "validate",
+      "stage_key": "validate",
+      "study_fingerprint": "b9afb3e5e04fbf4a6560e72909cd5829ca027ac0eda07453d70e47ee37ef9446",
+      "submission_state": "SUBMITTED",
+      "tasks": {
+        "0": {
+          "allocated_gpus": 1,
+          "elapsed_seconds": 17,
+          "state": "FAILED"
+        }
+      },
+      "wall_seconds": 3600
+    }
+  ],
+  "schema_version": 1
+}

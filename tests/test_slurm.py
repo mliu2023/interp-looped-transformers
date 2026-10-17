@@ -189,6 +189,28 @@ class SlurmTest(unittest.TestCase):
         self.assertIn('--pilot', record['command'])
         self.assertTrue(submit.build_submission(self.args('capture'))[1])
 
+    def test_signed_diagnostic_requires_parity_without_opening_population_capture(self):
+        value = json.loads(self.gates.read_text())
+        for name in ('pilot', 'capability', 'discovery', 'protocol_lock'):
+            value.pop(name)
+        self.gates.write_text(json.dumps(value))
+        record, errors = submit.build_submission(self.args('poles-pilot'))
+        self.assertFalse(errors)
+        self.assertEqual(record['kind'], 'gpu')
+        self.assertTrue(submit.build_submission(self.args('capture'))[1])
+        value.pop('parity')
+        self.gates.write_text(json.dumps(value))
+        self.assertTrue(submit.build_submission(self.args('poles-pilot'))[1])
+
+    def test_wait_records_acknowledged_failed_job_without_freeing_reservation(self):
+        self.fake.write_text('#!/usr/bin/env python3\nprint("12345")\nraise SystemExit(1)\n')
+        with self.assertRaisesRegex(ValueError, 'completed with exit status 1'):
+            self.run_submit(self.args(wait=True))
+        ledger = json.loads((self.results / 'scheduler_ledger.json').read_text())
+        self.assertEqual(ledger['jobs'][0]['job_id'], '12345')
+        self.assertEqual(ledger['jobs'][0]['wait_exit_code'], 1)
+        self.assertEqual(submit.budget(ledger)['outstanding_max_gpu_hours'], .5)
+
     def test_cpu_merge_passes_original_count_without_scheduler_array(self):
         record, errors = submit.build_submission(self.args('merge', num_shards=4))
         self.assertFalse(errors)
@@ -237,6 +259,53 @@ class SlurmTest(unittest.TestCase):
         self.run_submit(self.args())
         with self.assertRaisesRegex(ValueError, 'Concurrent duplicate'):
             self.run_submit(self.args(resume=True))
+
+    def validation_history(self):
+        record, _ = submit.build_submission(self.args())
+        previous = dict(record, config_hash='old-config', snapshot_sha256='old-snapshot',
+                        job_id='12345', tasks={'0': {'state': 'FAILED', 'elapsed_seconds': 17,
+                                                    'allocated_gpus': 1}})
+        return record, previous
+
+    def test_failed_validation_can_use_repaired_snapshot_and_keeps_accounting(self):
+        record, previous = self.validation_history()
+        ledger = {'jobs': [previous], 'gpu_hour_cap': 30}
+        before = json.dumps(ledger, sort_keys=True)
+        self.assertFalse(submit.has_duplicate(ledger, record))
+        self.assertEqual(json.dumps(ledger, sort_keys=True), before)
+        self.assertAlmostEqual(submit.budget(ledger)['consumed_gpu_hours'], 17 / 3600)
+
+    def test_repaired_validation_rejects_active_unknown_success_and_empty_histories(self):
+        record, previous = self.validation_history()
+        for state in ('PENDING', 'RUNNING', 'RESERVED', 'UNKNOWN', 'COMPLETED'):
+            with self.subTest(state=state):
+                previous['tasks'] = {'0': {'state': state}}
+                with self.assertRaisesRegex(ValueError, 'Stage retries must preserve'):
+                    submit.has_duplicate({'jobs': [previous]}, record)
+        previous['tasks'] = {}
+        with self.assertRaisesRegex(ValueError, 'Stage retries must preserve'):
+            submit.has_duplicate({'jobs': [previous]}, record)
+        previous['tasks'] = {'0': {'state': 'FAILED'}, '1': {'state': 'RUNNING'}}
+        with self.assertRaisesRegex(ValueError, 'Stage retries must preserve'):
+            submit.has_duplicate({'jobs': [previous]}, record)
+
+    def test_repaired_validation_requires_job_identity_study_and_shard_count(self):
+        for changed in ({'job_id': None}, {'study_fingerprint': 'another-study'},
+                        {'num_shards': 2}):
+            record, previous = self.validation_history()
+            previous.update(changed)
+            with self.subTest(changed=changed):
+                with self.assertRaisesRegex(ValueError, 'Stage retries must preserve'):
+                    submit.has_duplicate({'jobs': [previous]}, record)
+
+    def test_research_hash_guards_remain_strict_after_failed_attempts(self):
+        for stage in ('capture', 'confirm'):
+            record, previous = self.validation_history()
+            record.update(stage=stage, stage_key=stage)
+            previous.update(stage=stage, stage_key=stage)
+            with self.subTest(stage=stage):
+                with self.assertRaisesRegex(ValueError, 'Stage retries must preserve'):
+                    submit.has_duplicate({'jobs': [previous]}, record)
 
     def test_uncertain_submission_retains_worst_case_reservation(self):
         self.fake.write_text('#!/usr/bin/env python3\nimport sys\nsys.exit(1)\n')

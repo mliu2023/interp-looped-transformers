@@ -17,7 +17,7 @@ import sys
 import tempfile
 import uuid
 
-GPU_STAGES = {'validate', 'baseline', 'capture', 'discover-causal', 'confirm'}
+GPU_STAGES = {'validate', 'baseline', 'capture', 'discover-causal', 'confirm', 'poles-pilot'}
 CPU_STAGES = {'audit', 'data', 'fit', 'lock', 'merge', 'report', 'verify-results', 'fixtures'}
 ARRAY_STAGES = {'baseline', 'capture', 'confirm'}
 ENV_NAMES = ('REUSE_PROJECT_DIR', 'REUSE_ENV_DIR', 'REUSE_RUN_ROOT', 'REUSE_CACHE_ROOT',
@@ -122,7 +122,10 @@ def gate_errors(stage, config, path, pilot=False):
     if not fingerprint or gates.get('study_fingerprint') != fingerprint:
         return ['study_fingerprint missing or mismatched between configuration and gates']
     required = ['parity']
-    if not pilot:
+    # The bounded signed-activity diagnostic is a separate exploratory protocol,
+    # not population capture or a task/causal claim. It performs new-site parity
+    # inside its allocation and never writes the original study's gates.
+    if not pilot and stage != 'poles-pilot':
         required.append('pilot')
     if stage in {'capture', 'discover-causal', 'confirm'}:
         required.append('capability')
@@ -229,6 +232,8 @@ def build_submission(args):
                f'--mem={mem}', f'--time={os.getenv("REUSE_TIME", "01:00:00")}',
                f'--output={logs / (suffix + ".out")}', f'--error={logs / (suffix + ".err")}',
                '--export=' + ','.join(f'{key}={value}' for key, value in environment.items())]
+    if getattr(args, 'wait', False):
+        command.append('--wait')
     for name, cpu_name, flag in [('REUSE_ACCOUNT', 'REUSE_CPU_ACCOUNT', '--account'),
                                  ('REUSE_QOS', 'REUSE_CPU_QOS', '--qos')]:
         # An explicitly empty CPU override asks Slurm to use its own default.
@@ -290,6 +295,20 @@ def has_duplicate(ledger, record):
         if (job['run_id'], job.get('stage_key', job['stage'])) != (record['run_id'], record.get('stage_key', record['stage'])):
             continue
         if job['config_hash'] != record['config_hash'] or job['snapshot_sha256'] != record['snapshot_sha256'] or job['num_shards'] != record['num_shards']:
+            # A failed engineering validation may be retried after repairing the
+            # environment. Successful/unknown attempts and research shards keep
+            # their original immutable snapshot/configuration requirements.
+            failed_validation = (
+                job['stage'] == record['stage'] == 'validate'
+                and job['num_shards'] == record['num_shards']
+                and job.get('job_id')
+                and job.get('study_fingerprint')
+                and job['study_fingerprint'] == record.get('study_fingerprint')
+                and job['tasks']
+                and all(task.get('state') in TERMINAL and task.get('state') != 'COMPLETED'
+                        for task in job['tasks'].values()))
+            if failed_validation:
+                continue
             raise ValueError('Stage retries must preserve snapshot/configuration hashes and original shard count')
         overlap = set(job['tasks']) & set(record['tasks'])
         if any(job['tasks'][index].get('state') not in TERMINAL for index in overlap):
@@ -386,16 +405,22 @@ def submit(args):
         record['sbatch_stdout'] = result.stdout.strip()
         record['sbatch_stderr'] = result.stderr.strip()
         match = re.fullmatch(r'(\d+)(?:;[A-Za-z0-9_.-]+)?', result.stdout.strip())
-        if result.returncode or not match:
+        if (result.returncode and not getattr(args, 'wait', False)) or not match:
             record['submission_state'] = 'UNKNOWN_RECONCILE_REQUIRED'
             atomic_json(path, ledger)
             raise ValueError('sbatch did not return an unambiguous job ID; reservation retained. Inspect scheduler before retry.')
         record['job_id'] = match.group(1)
         record['submission_state'] = 'SUBMITTED'
+        if getattr(args, 'wait', False):
+            # --wait returns the batch exit status, not submission success.
+            # Keep the full reservation until normal accounting reconciliation.
+            record['wait_exit_code'] = result.returncode
         for task in record['tasks'].values():
             task['state'] = 'PENDING'
         atomic_json(path, ledger)
         print(json.dumps({'job_id': record['job_id'], 'ledger': str(path), 'budget_after': budget(ledger)}))
+        if getattr(args, 'wait', False) and result.returncode:
+            raise ValueError(f'Job {record["job_id"]} completed with exit status {result.returncode}; inspect its logs')
         return 0
 
 
@@ -410,6 +435,7 @@ def main():
     parser.add_argument('--resume', action='store_true')
     parser.add_argument('--pilot', action='store_true', help='Single 32-example baseline timing/capability pilot')
     parser.add_argument('--dry-run', action='store_true')
+    parser.add_argument('--wait', action='store_true', help='Use Slurm completion notification; does not poll the queue')
     parser.add_argument('--gates')
     parser.add_argument('--dependency', help='Actual afterok job IDs separated by colons')
     parser.add_argument('--ledger')

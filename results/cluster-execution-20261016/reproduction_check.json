@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "recomputed_from_saved_raw_evidence": true,
+  "output_sha256": {
+    "metrics.json": "84ffc6b8dd320b570fe71368626dc7a56617f38dbb45b5c407b296873f64c468",
+    "limitations.json": "fc6eb639a2d4d8b44cea4834353e25d1f189a476c552d57f405272770a51d17c",
+    "report.md": "695a1da8ec99a278e737bf24f65c677f39fa28488082ed499394787bd1797e7e",
+    "claim_ledger.csv": "9995af2ff6ae0f0eaefbdebda10e71ce2d7f08302ceeb9272c64f32f88448238"
+  },
+  "scope": "execution status and resource accounting only; no model findings"
+}

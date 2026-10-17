@@ -1,0 +1,8 @@
+test_recomputation_preserves_tensor_axis_after_json_key_sorting (test_poles.RankTests.test_recomputation_preserves_tensor_axis_after_json_key_sorting) ... ok
+test_signed_coverage_and_family_grouping (test_poles.RankTests.test_signed_coverage_and_family_grouping) ... ok
+test_ties_and_constant_units (test_poles.RankTests.test_ties_and_constant_units) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.393s
+
+OK

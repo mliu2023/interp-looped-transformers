@@ -1,0 +1,26 @@
+[
+  {
+    "command": [
+      "squeue",
+      "--me"
+    ],
+    "returncode": 0,
+    "stdout": "             JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "sacct",
+      "-u",
+      "mliu171",
+      "-S",
+      "2026-10-16",
+      "--name=reuseinterp-env",
+      "--format=JobID,JobName,State,ExitCode,Elapsed",
+      "-P"
+    ],
+    "returncode": 0,
+    "stdout": "JobID|JobName|State|ExitCode|Elapsed\n",
+    "stderr": ""
+  }
+]

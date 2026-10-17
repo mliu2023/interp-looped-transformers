@@ -1,0 +1,18 @@
+{
+  "distribution": "deterministic 2D scenes; not CLEVR",
+  "gpu_compatibility": "proposed CUDA 12.8 environment remains untested on GPU",
+  "model_findings": [],
+  "pending": [
+    "working scheduler access and resolution of uncertain CPU submission",
+    "scheduled CUDA 12.8 repair and full CPU suite",
+    "fresh GPU preflight and loaded architecture audit",
+    "official inference parity and intervention validity",
+    "timing/memory pilot and capability/image controls",
+    "representative capture, discovery and remaining control orchestration",
+    "causal collection executor after loaded audit",
+    "immutable protocol, confirmation and scientific figures"
+  ],
+  "scientific_uncertainty": "No scientific effect estimated; no inferential intervals applicable",
+  "status": "blocked_before_model_loading",
+  "uncertain_submission": "No job ID returned; resolve with scheduler before retrying"
+}

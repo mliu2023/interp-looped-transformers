@@ -1,529 +1,181 @@
-# Brown/Oscar handoff: status and execution
+# Cluster operating guide
 
-For a fresh GitHub clone, use [BROWN_QUICKSTART.md](BROWN_QUICKSTART.md): it gives
-the complete automated setup and sequential commands through discovery. The
-manual procedures below remain useful for a site-required module environment,
-accounting, retries and the future gated confirmation path.
+Use this guide from the existing Oscar installation. [PROGRESS.md](../PROGRESS.md) records current evidence and the next unmet gate. The [scientific protocol](../CODEX_PLAN.md) defines what each measurement must establish; the [replication plan](NEURON_REPLICATION_PLAN.md) describes the proposed extension.
 
-Infrastructure was tested on CPU with fake `sbatch`; no GPU job has been submitted.
-On October 16, 2026, a noninteractive connection to
-`mliu171@ssh.ccv.brown.edu` reached the server but failed with
-`Permission denied (keyboard-interactive)`. Interactive authentication/2FA or an
-approved key setup is pending. No password or private key belongs in this repository.
-[Brown's SSH documentation](https://docs.ccv.brown.edu/oscar/connecting-to-oscar/ssh)
-describes 2FA on `ssh.ccv.brown.edu` and the campus/VPN key-login endpoint
-`sshcampus.ccv.brown.edu`. The latter has not been verified for this account.
-
-The user has now supplied account associations for `mliu171`: the default account
-has `gpu-debug`/`gpu-debug`, `gpu`/`norm-gpu`, and `batch`/`normal` partition/QoS
-pairs. The user also supplied live `gpu-debug` partition/QoS limits and GPU
-inventory: QoS MaxWall is one hour, MaxTRESPU is 8 CPUs, 4 GPUs and 96 GiB host
-memory; the partition itself reports unlimited MaxTime and a five-minute default.
-Modules, quotas, retention rules,
-driver compatibility, and actual model memory needs are **pending site checks**.
-The 32 GiB host-memory request is separate from GPU VRAM. A 24 GiB GPU is a
-planning target, not a validated model requirement. No paid resources are used.
-
-The executable handoff covers source audit, deterministic data, numerical
-validation, behavior/controls, representative capture, and CPU analysis
-interfaces. Loaded-model checks remain unrun. Candidate-specific causal
-collection (`discover-causal`), donor alignment for those candidates, and the
-short-horizon causal runner are **pending implementation after the loaded audit**;
-the current command fails closed. A Slurm wrapper exists for that interface,
-but submitting it now would consume an allocation without collecting effects.
-Observational P1/P2 confirmation is separate from causal P3 collection and must
-use its implemented CLI path only after an actual protocol lock.
-
-## 1. Establish access and record site policy
-
-On the laptop, use interactive authentication first:
+## Activate the existing installation
 
 ```bash
-ssh mliu171@ssh.ccv.brown.edu
-```
-
-Once authorized access works, the following read-only commands discover resources.
-Save their output in approved project storage; do not put credentials in logs.
-
-```bash
-hostname
-sinfo --version
-sinfo -o "%P %a %l %G"
-scontrol show partition
-sacctmgr show associations where user="$USER" format=User,Account,Partition,QOS
-```
-
-The last command may be restricted; use the account's allocation documentation
-instead if so. Record allowed partitions/accounts/QoS, GPU request syntax, time
-limits, storage quota, scratch purge schedule, download policy, and supported
-Python/CUDA/PyTorch environment. Login nodes handle transfer, submission, and
-light inspection. Rendering, substantial analysis, and model inference run in
-scheduled CPU/GPU jobs. Use the university's supported container/environment
-instead of a venv if required. Never install GPU drivers.
-
-For later noninteractive Codex submissions, verify the account's approved SSH
-method with `ssh -o BatchMode=yes mliu171@ssh.ccv.brown.edu true`. Failure is an
-access blocker, not permission to bypass 2FA. An authenticated user can execute
-the commands below manually until approved noninteractive access is available.
-
-## 2. Configure shared paths and the cluster environment
-
-For this Brown account, `configs/cluster.brown.env.example` prefills the supplied
-default-account associations. Copy it to `$HOME/reuseinterp-cluster.env` and fill
-the absolute paths before use. Its singleton smoke now requests one hour, 8 CPUs,
-32 GiB host RAM and one `nvidia_rtx_a6000` GPU, matching the user's live inventory
-and QoS limits. Runtime and peak VRAM remain unmeasured. The maximum one-hour
-GPU reservation counts against the project cap; actual consumption comes from
-Slurm accounting. The inventory is not a statement that a node is currently idle.
-These read-only commands can refresh the recorded information:
-
-```bash
-scontrol show partition gpu-debug
-sacctmgr -nP show qos where name=gpu-debug format=Name%24,MaxWall,MaxTRESPU%80
-sinfo -p gpu-debug -N -o "%N %G %f"
-```
-
-The initial GPU settings are `REUSE_PARTITION=gpu-debug`, `REUSE_ACCOUNT=default`,
-and `REUSE_QOS=gpu-debug`. CPU submissions use `REUSE_CPU_PARTITION=batch`,
-`REUSE_CPU_ACCOUNT=default`, and `REUSE_CPU_QOS=normal`. CPU account/QoS overrides
-are separate because a GPU QoS is not the CPU association shown by the user.
-An explicitly empty CPU override omits its flag; an unset override preserves the
-legacy fallback to the corresponding shared account/QoS setting.
-
-After successful smoke/pilot validation, the supplied regular GPU association is
-`REUSE_PARTITION=gpu` with `REUSE_ACCOUNT=default` and `REUSE_QOS=norm-gpu`.
-Changing the actual GPU/backend still requires a new parity check. An association
-is not a measurement of available capacity, walltime, GPU type, or project budget.
-
-The full association output supplied by the user resolves the lab account to
-`brubenst-condo`: partition `gpu-he` uses QoS `brubenst-gcondo`, and partition
-`batch` uses QoS `brubenst-condo`. Their limits have not been inspected. The initial
-smoke continues to use the supplied default-account debug association. Refresh
-the complete account names with:
-
-```bash
-sacctmgr -nP show assoc where user=mliu171 format=User%12,Account%40,Partition%30,QOS%50,DefaultQOS%50
-```
-
-Brown documents `--gres=gpu:1` for a single-GPU batch request in
-[GPUs on Oscar](https://docs.ccv.brown.edu/oscar/gpu-computing/gpus). The debug
-partition's GPU and software compatibility still need validation in the scheduled
-smoke. The typed request `--gres=gpu:nvidia_rtx_a6000:1` pins the listed GPU type;
-it does not change model precision or validate the backend. Pin the same type
-for subsequent jobs or repeat numerical parity if the actual backend changes.
-No job has been submitted on the basis of the supplied listings.
-
-Copy `configs/cluster.env.example` to an **external** site settings file, for
-example `$HOME/reuseinterp-cluster.env`. Replace every `/REPLACE/...` path and
-partition name. `REUSE_PROJECT_DIR` will point to an immutable snapshot, not the
-editable source checkout. Optional account and QoS variables stay empty when
-unused. Only one GPU per task is supported. For sites accepting `--gres`, use
-`REUSE_GPU_FLAG=--gres` and `REUSE_GPU_REQUEST=gpu:1`; for `--gpus`, use
-`REUSE_GPU_FLAG=--gpus` and `REUSE_GPU_REQUEST=1`.
-
-First transfer the source from the laptop to that approved shared source path:
-
-```bash
-rsync -av --exclude=.git --exclude=.venv --exclude=results --exclude=datasets --exclude=vendor ./ mliu171@ssh.ccv.brown.edu:/REPLACE/shared/editable-source/
-```
-
-On the cluster, after applying the site's documented module setup:
-
-```bash
-source "$HOME/reuseinterp-cluster.env"
-python3 -m venv "$REUSE_ENV_DIR"
+cd /oscar/home/mliu171/reuseinterp-loopvl
+source recovery-cu128-20261016/cluster.env
 source "$REUSE_ENV_DIR/bin/activate"
-python -m pip install -e "$REUSE_SOURCE_DIR"
+cd "$REUSE_SOURCE_DIR"
+export REUSE_SUBMITTER="$REUSE_SOURCE_DIR/scripts/slurm/submit.py"
 ```
 
-Use a Linux environment created on the cluster; do not copy a laptop venv.
-Install the site's supported matching PyTorch/torchvision pair and CUDA runtime
-in the venv/container. The pinned official runtime references PyTorch 2.12.1 and
-torchvision 0.27.1; availability and compatibility with this cluster remain
-unverified. Install the audited official runtime dependencies only once that
-pair is approved. Exact source and model staging, on a node permitted to download:
+`REUSE_SOURCE_DIR` is the editable `source/` checkout. `REUSE_PROJECT_DIR` is the frozen `recovery-cu128-20261016/snapshot/`; queued jobs read that snapshot. Use the editable submitter above, which includes the repaired validation retry behavior. It verifies the frozen snapshot and records its own wrapper hash.
+
+The active environment uses torch 2.8.0+cu128 and torchvision 0.23.0+cu128. It reuses the staged model, dataset, cache, and run root. Do not repeat bootstrap or recovery for this installation, or edit the snapshot to apply source changes.
+
+## Execution rules and accounting
+
+Follow `/oscar/AGENTS.md`. Model inference, substantial analysis, installation, and data generation run in scheduled allocations. Show the applicable batch script before submission. Arrays require explicit approval; the commands below use one shard. Check scheduler state only on request, without automatic polling.
+
+The configured initial request is one `nvidia_rtx_a6000` GPU, 8 CPUs, 32 GiB host memory, and one hour on `gpu-debug`, account `default`, QoS `gpu-debug`. These are configured requests, not measured runtime requirements. Keep the validated backend unless deliberately repeating numerical validation.
+
+Before further submission, reconcile actual allocated time with the shared ledger:
 
 ```bash
-export HF_HOME="$REUSE_CACHE_ROOT"
-git clone https://github.com/Tier-Flow/LoopVL.git "$REUSE_LOOPVL_DIR"
-git -C "$REUSE_LOOPVL_DIR" checkout --detach 6c14bed1d62fbecb559d5902459c6093c38da405
-git -C "$REUSE_LOOPVL_DIR" diff --exit-code
-python -m pip install -r "$REUSE_LOOPVL_DIR/runtime/requirements.txt"
-hf download TierFlow/LoopVL --revision 92aa28bc678f523f8641fdb2f9e5159f614d1c02 --local-dir "$REUSE_MODEL_DIR"
+python "$REUSE_SUBMITTER" account --refresh
 ```
 
-The inspected official requirements pin transformers 5.15.1, safetensors 0.8.0,
-Pillow 12.2.0, PyYAML 6.0.3, and accelerate 1.15.0. Do not substitute unverified
-versions if installation fails; record that blocker. `hf` is provided by the
-installed Hugging Face Hub dependency; if absent, install the site-approved
-Hub CLI and include its version in the lock. If upstream files differ, stop and
-update the architecture audit before inference. The adapter checks the pinned
-Git revision and checkpoint hashes.
+This queries accounting and updates `$REUSE_RUN_ROOT/scheduler_ledger.json`. The project limit is 30 GPU hours, including failed jobs, every array task, and retries. Queued/running/unknown tasks retain their worst case reservations until accounting resolves them. A new run ID or relocated ledger does not create another allowance. Research outputs share a 20 GiB ceiling.
 
-Set `HF_HOME="$REUSE_CACHE_ROOT"` while staging. Verify the revision's complete
-weights, tokenizer, processor, configuration, and audited custom runtime are
-present and can be opened with network disabled. Metadata in a cache alone is
-insufficient. Do not mark `REUSE_CACHE_READY=1` until this check is complete.
-This permits offline loading; numerical model validation still happens only in
-the GPU smoke allocation. Every GPU wrapper refuses an unverified cache.
-
-If module loads are needed inside jobs, write their **verified** commands to
-`configs/site-environment.sh` in the editable source before freezing. The optional
-`REUSE_SITE_ENV` must point to that file inside the snapshot. Credentials and
-local settings must stay outside snapshots. Then pin the resulting environment:
+A dry run prints the exact proposed scheduler command, estimates, and missing gates. It does not submit or reserve GPU hours. Before an actual submission, review the applicable frozen script:
 
 ```bash
-python -m pip freeze --all > "$REUSE_SOURCE_DIR/cluster-dependencies.lock"
+cat "$REUSE_PROJECT_DIR/scripts/slurm/run_gpu.sbatch"
+cat "$REUSE_PROJECT_DIR/scripts/slurm/run_cpu.sbatch"
 ```
 
-Inspect this lock for credentials in private package URLs before preserving it.
-Each scheduled job checks that its installed package set equals the lock.
-Changing dependencies or backend requires a new snapshot and a new parity check.
+Run a stage's actual submission only after its prerequisites and resource request have been reviewed. Save the returned numeric job ID. If submission returns no unambiguous ID, reconcile its state before retrying.
 
-## 3. Freeze a stage and prepare data on CPU
+## Check the recorded validation
 
-Transfer the editable repository from the laptop without weights or captures:
+Current artifacts are under `$REUSE_RUN_ROOT/loopvl-transfer-v1/`. Inspect a compact summary instead of printing the full diagnostic report:
 
 ```bash
-rsync -av --exclude=.git --exclude=.venv --exclude=results --exclude=datasets --exclude=vendor ./ mliu171@ssh.ccv.brown.edu:/REPLACE/shared/editable-source/
-```
-
-Use absolute approved shared paths in configuration files for datasets. Before
-freezing the cluster snapshot, update every stage to the same path:
-
-```bash
-export REUSE_DATASET_DIR="/REPLACE/shared/datasets/scenes-v1"
-python - "$REUSE_SOURCE_DIR" "$REUSE_DATASET_DIR" <<'PY'
+python - <<'PYCODE'
 import json
+import os
 from pathlib import Path
-import sys
-source, dataset = Path(sys.argv[1]), Path(sys.argv[2])
-if not dataset.is_absolute() or 'REPLACE' in str(dataset):
-    raise SystemExit('Configure an approved absolute dataset path first')
-for name in ('smoke', 'pilot', 'discovery', 'confirmation'):
-    path = source / 'configs' / (name + '.yaml')
-    config = json.loads(path.read_text())
-    config['dataset_dir'] = str(dataset)
-    path.write_text(json.dumps(config, indent=2) + '\n')
-PY
+run = Path(os.environ["REUSE_RUN_ROOT"]) / "loopvl-transfer-v1"
+report = json.loads((run / "parity_report.json").read_text())
+gates = json.loads((run / "gates.json").read_text())
+print({"status": report["status"], "examples": report["examples"],
+       "checks": len(report["checks"]), "scope": report["scope"]})
+print(gates)
+PYCODE
 ```
 
-This changes storage location only; preserve the split assignments, renderer
-configuration, seeds, and scientific definitions. Generate
-the broad deterministic dataset locally if practical and transfer it, or use the
-scheduled `data` command below. Data revision/content hashes must be the same
-across discovery and confirmation. Keep model/source datasets separate from the
-20 GiB research-output ceiling. A scene family, both edits, all questions, and
-all conditions always share one split and shard.
+Preflight records are in `../runs/preflight/`; stdout/stderr are in `../runs/logs/`. Numerical validity is distinct from competence and object mask alignment. Require a fresh parity check after changing the model/backend or the relevant instrumentation. Do not resubmit the existing successful validation merely because an archived document says it is pending.
 
-On the cluster, freeze reviewed sources/configs using a destination outside the
-source directory. Existing snapshots are never overwritten:
+## Measure timing and memory
+
+This is the next uncompleted stage for the existing study. After refreshing accounting:
 
 ```bash
-source "$HOME/reuseinterp-cluster.env"
-source "$REUSE_ENV_DIR/bin/activate"
-python "$REUSE_SOURCE_DIR/scripts/slurm/freeze.py" --source "$REUSE_SOURCE_DIR" --destination "$REUSE_PROJECT_DIR" --dependency-lock "$REUSE_SOURCE_DIR/cluster-dependencies.lock"
-python "$REUSE_PROJECT_DIR/scripts/slurm/freeze.py" --verify "$REUSE_PROJECT_DIR" --verify-environment
+python "$REUSE_SUBMITTER" baseline --config configs/pilot.yaml --pilot --dry-run
 ```
 
-Snapshot manifests contain file hashes, the source Git commit when available,
-and the dependency lock hash. Results, model/data payloads, upstream vendor code,
-credentials, and local `.env` files are excluded. The Python package's
-`src/reuseinterp/data/` code remains included. Queued jobs verify source/config
-bytes again before execution. External pinned upstream code and model files are
-independently verified by the adapter. Treat snapshots as read-only; changed
-bytes cause failure rather than running an edited queued configuration.
-
-The shipped configurations omit `split_counts`, so `data --config configs/pilot.yaml`
-generates the **full fixed 1,160-family universe**. The `splits` key selects
-model-stage examples; it does not reduce data generation. Use a scheduled CPU job:
+After reviewing the printed request and GPU script, submit:
 
 ```bash
-python "$REUSE_PROJECT_DIR/scripts/slurm/submit.py" data --config configs/pilot.yaml --dry-run
-python "$REUSE_PROJECT_DIR/scripts/slurm/submit.py" data --config configs/pilot.yaml
+python "$REUSE_SUBMITTER" baseline --config configs/pilot.yaml --pilot
 ```
 
-The CPU wrapper requests no GPU and does not run CUDA preflight. Its CPU partition
-must still be verified. Save the returned job ID and inspect completion artifacts;
-the examples do not claim a job has run.
+Require the saved `pilot` gate to pass with at least 32 measured examples. Inspect `timing-pilot/resources-0000.json` for measured throughput and peak allocated/reserved GPU memory before sizing subsequent work. The timing run includes control/scoring costs but does not establish the full capability gate.
 
-Alternatively transfer the existing local `datasets/scenes-v1/` to the configured
-absolute shared path. Preserve its manifest and hashes; do not regenerate it
-with another Pillow/generator version. The generator intentionally refuses to
-overwrite an incompatible existing dataset. Validate transferred data without
-regeneration:
+## Evaluate task capability
+
+After timing passes, refresh accounting and evaluate all pilot families:
 
 ```bash
-python -c 'import os; from reuseinterp.data import validate_dataset; print(validate_dataset(os.environ["REUSE_DATASET_DIR"]))'
+python "$REUSE_SUBMITTER" baseline --config configs/pilot.yaml --resume --dry-run
 ```
 
-## 4. Single scheduled GPU smoke, then measured pilot
-
-Set `REUSE_CACHE_READY=1` in the external settings only after staging verification.
-The configured time request is an upper bound reserved against the budget, so
-start short enough for a useful smoke job and adjust from measurements. If an
-allocation cannot fit the model, reduce batch size first. Do not silently cast,
-quantize, change model revisions, or change endpoints to obtain a passing run.
+After reviewing the request, submit:
 
 ```bash
-source "$HOME/reuseinterp-cluster.env"
-python "$REUSE_PROJECT_DIR/scripts/slurm/submit.py" validate --config configs/smoke.yaml --dry-run
-python "$REUSE_PROJECT_DIR/scripts/slurm/submit.py" validate --config configs/smoke.yaml
+python "$REUSE_SUBMITTER" baseline --config configs/pilot.yaml --resume
 ```
 
-The dry-run prints the exact `sbatch` argument list, requested maximum GPU-hours,
-forward/storage estimates when configured, current budget, and any failed gates.
-It creates log/lock directories but never calls `sbatch` or writes a reservation.
-The real submission prints an actual scheduler job ID and writes
-`$REUSE_RUN_ROOT/scheduler_ledger.json`. An unambiguous job ID is mandatory; an
-uncertain submission keeps its full budget reservation until scheduler evidence
-resolves it. No stdout placeholder is a scheduler ID.
+Inspect `baseline/competence.json` and the `capability` gate. Clean, shuffled image, and neutral image results determine the supported task scope. Capture requires completed parity, timing, and capability gates. If measured work needs another partition, inspect its actual limits and available validated GPU type before changing settings; an association alone is not proof of capacity.
 
-Environment export uses an explicit `--export=NAME=value,...` list, without
-`ALL` or `NONE`. Slurm disallows combining `NONE` with explicit variables. The
-wrapper rejects commas/newlines in exported values; put such configuration in
-reviewed files instead. Runtime cache, pinned source/model paths, expected
-snapshot SHA256, and expected parity backend are exported explicitly. Scheduler
-variables remain managed by Slurm. See the [official export syntax](https://slurm.schedmd.com/sbatch.html#OPT_export).
+## Collect and analyze discovery data
 
-`run_gpu.sbatch` checks the immutable environment, runs CUDA preflight inside
-Slurm, then runs Milestone A numerical checks. Preflight records versions, visible
-GPU name/VRAM, actual probe placement, operators, supported dtype, and backend
-signature in `$REUSE_RUN_ROOT/preflight/JOBID_single.json`. The model adapter
-separately records real model placement. Capture, self-replacement, zero-dose,
-matched storage/weights, down-projection reconstruction, exact invocation counts,
-token alignment, and no answer leakage must all pass. At least 16 varied examples
-are required. Repeated official forwards set tolerances before interpretation.
-
-After the numerical artifact and gate pass, run the single 32-example timing,
-memory, and task competence pilot:
+After the prerequisite gates and a feasible cost projection, use one resumable capture shard:
 
 ```bash
-python "$REUSE_PROJECT_DIR/scripts/slurm/submit.py" baseline --config configs/pilot.yaml --pilot --dry-run
-python "$REUSE_PROJECT_DIR/scripts/slurm/submit.py" baseline --config configs/pilot.yaml --pilot
+python "$REUSE_SUBMITTER" capture --config configs/discovery.yaml --num-shards 1 --resume --dry-run
 ```
 
-`--pilot` is forwarded to the CLI and selects the 32-example timing run. A
-passed parity gate is required. No array is permitted for initial smoke/pilot.
-Pilot records must include at least 32 measured examples and peak GPU allocated/
-reserved memory, throughput, host memory, malformed responses, clean accuracy,
-candidate scores, and image-shuffle/no-useful-image controls. Competence determines
-the supported task scope; failures are reported. A gate must be generated from
-saved validated model measurements, never filled in manually to unblock a job.
-
-Use measured runtime/VRAM to set future requests and forward/storage estimates.
-Missing estimates are explicitly printed as unknown; a dry-run alone does not
-establish feasibility. GPU work after the pilot remains blocked until the
-measurement artifacts are complete.
-
-The 32-example timing run does not issue the full capability gate. After timing
-passes, evaluate all pilot families with clean/shuffled/neutral controls:
+After reviewing the request, submit:
 
 ```bash
-python "$REUSE_PROJECT_DIR/scripts/slurm/submit.py" account --refresh
-python "$REUSE_PROJECT_DIR/scripts/slurm/submit.py" baseline --config configs/pilot.yaml --resume --dry-run
-python "$REUSE_PROJECT_DIR/scripts/slurm/submit.py" baseline --config configs/pilot.yaml --resume
+python "$REUSE_SUBMITTER" capture --config configs/discovery.yaml --num-shards 1 --resume
 ```
 
-This writes capability evidence and supported scope. A successful timing job
-alone cannot open capture.
+An interrupted shard can resume across allocations. Keep the original shard count and hashes. Do not change to an array after collecting data under a different shard topology. A multi shard run requires explicit approval plus a real scheduled interruption/resume check; then set shard count and concurrency from measured resources before starting it.
 
-## 5. Independent arrays, merge, discovery, and lock
-
-Gates live in `$REUSE_RUN_ROOT/RUN_ID/gates.json`, where `RUN_ID` is read from the
-configuration. An explicit `--gates /path/gates.json` supports another documented
-run layout. Each gate and the top-level object carry the stage-independent
-`study_fingerprint` from the configuration. `parity` includes
-`backend_signature`; `pilot` includes `measured_examples >= 32`; `capability`
-records supported families. Capture/causal stages require these gates. A backend
-change relative to parity makes preflight fail. Do not bypass the failure with
-an edited fingerprint.
-
-After parity, pilot, and capability are validated:
+Once every capture shard is complete, merge on a CPU node:
 
 ```bash
-python "$REUSE_PROJECT_DIR/scripts/slurm/submit.py" capture --config configs/discovery.yaml --num-shards 4 --concurrency 2 --resume --dry-run
-python "$REUSE_PROJECT_DIR/scripts/slurm/submit.py" capture --config configs/discovery.yaml --num-shards 4 --concurrency 2 --resume
+python "$REUSE_SUBMITTER" merge --config configs/discovery.yaml --num-shards 1 --dry-run
 ```
 
-Arrays are available for `baseline`, `capture`, and `confirm`. `--num-shards`
-remains fixed across retries; `SLURM_ARRAY_TASK_ID` selects the shard. Assignment
-is deterministic by whole family. Tasks write separate atomic shard directories;
-there is no concurrent shared CSV append. Checkpoint at least every 25 families,
-and sooner when per-family duration requires it.
-
-After recording the actual capture array ID, queue a CPU merge with afterok:
+After reviewing the CPU request, submit:
 
 ```bash
-export REUSE_CAPTURE_JOB_ID="REPLACE_WITH_RETURNED_NUMERIC_ID"
-python "$REUSE_PROJECT_DIR/scripts/slurm/submit.py" merge --config configs/discovery.yaml --num-shards 4 --dependency "$REUSE_CAPTURE_JOB_ID" --dry-run
-python "$REUSE_PROJECT_DIR/scripts/slurm/submit.py" merge --config configs/discovery.yaml --num-shards 4 --dependency "$REUSE_CAPTURE_JOB_ID"
+python "$REUSE_SUBMITTER" merge --config configs/discovery.yaml --num-shards 1
 ```
 
-Replace the ID before running; the wrapper rejects nonnumeric placeholders.
-Scheduler success does not establish complete data. Merge independently checks
-expected shards, completion markers, condition/family coverage, duplicate keys,
-and compatible model/configuration/data hashes. Incomplete results block merge.
-
-After merge, use scheduled CPU `fit` and inspect discovery artifacts:
+Require `capture/merged.json`, then fit on a CPU node:
 
 ```bash
-python "$REUSE_PROJECT_DIR/scripts/slurm/submit.py" fit --config configs/discovery.yaml --dry-run
-python "$REUSE_PROJECT_DIR/scripts/slurm/submit.py" fit --config configs/discovery.yaml
+python "$REUSE_SUBMITTER" fit --config configs/discovery.yaml --dry-run
 ```
 
-The CPU fitting/analysis path and protocol lock are executable interfaces; their
-real model inputs remain pending. Candidate-specific causal discovery collection
-is currently a fail-closed boundary. After the loaded audit, implement and
-validate the complete donor/recipient token checks, intervention doses,
-candidate/control conditions, and short-horizon recording before opening causal
-work. Inspect the pending interface without spending a GPU allocation:
+After reviewing the CPU request, submit:
 
 ```bash
-python "$REUSE_PROJECT_DIR/scripts/slurm/submit.py" discover-causal --config configs/discovery.yaml --dry-run
+python "$REUSE_SUBMITTER" fit --config configs/discovery.yaml
 ```
 
-Do not remove `--dry-run` until that collection runner is implemented and
-validated. If P3 remains infeasible, declare its omission and preserve its
-multiplicity allocation. Never fill in causal results or gates to unblock
-observational confirmation. Lock an explicitly restricted observational protocol
-only if the protocol validator permits that declared scope.
+Merge validates completion markers, family coverage, and compatible hashes. Scheduler success alone does not establish a complete capture. Fitting uses fit/development/calibration families; confirmation and transfer families stay isolated.
 
-Once required discovery artifacts and protocol fields are complete, the pending
-CPU lock commands are:
+## Causal work and confirmation
+
+Stop after discovery until required controls and the candidate specific donor/horizon runner are implemented and validated. `discover-causal` is an incomplete collection interface. The checked in `docs/protocol_lock.json` is a draft; it cannot authorize confirmation.
+
+A real lock must freeze model/data/sample identity, calibration, endpoints, candidate and family IDs, control evidence, margins, exclusions, multiplicity, and resource limits. The observational executor rejects causal candidates it cannot collect. Skipping causal work requires the original protocol's discovery supported reason, not an implementation or access failure.
+
+After those gates are genuinely satisfied, the stage order is CPU `lock`, GPU `confirm`, CPU `merge`, and CPU `fit`, using `configs/confirmation.yaml` and the original confirmation shard count. Inspect each predecessor's saved outputs before proceeding. Confirmation analysis applies saved discovery fits without refitting.
+
+## Inspect failures and resume
+
+For a requested one time scheduler check, use `squeue --me`. Use actual returned IDs when inspecting accounting and logs; do not leave placeholder job IDs in commands. Review `$REUSE_RUN_ROOT/logs/` and `$REUSE_RUN_ROOT/preflight/` for the relevant job.
+
+Refresh accounting before retries. Wait until the previous writer is terminal, retain original configuration/snapshot/shard hashes, and add `--resume`. For an already approved array, `--indices` can select failed indices while preserving `--num-shards`. Do not append to a shared output file or remove a live writer lock.
+
+Safe family commits permit restart. Incomplete signal stops exit nonzero, so they cannot satisfy `afterok`. Automatic requeue is disabled; retries have their own reservations. Recreate dependent submissions after a failed predecessor if their dependencies no longer apply. Keep raw failure evidence.
+
+## Change source or environment
+
+Edit `source/`; preserve frozen snapshots and raw measurements. New executable code/configuration needs a new snapshot and provenance before it can run. Inspect the existing freezer's interface:
 
 ```bash
-python "$REUSE_PROJECT_DIR/scripts/slurm/submit.py" lock --config configs/confirmation.yaml --dry-run
-python "$REUSE_PROJECT_DIR/scripts/slurm/submit.py" lock --config configs/confirmation.yaml
+python "$REUSE_SOURCE_DIR/scripts/slurm/freeze.py" --help
 ```
 
-The shipped `docs/protocol_lock.json` is an incomplete draft. Locking it unchanged
-fails; it is not authorization for confirmation. Run stages sequentially after
-each predecessor's artifacts pass validation. Do not queue confirmation against
-unfinished discovery. Confirmation additionally
-requires `discovery.passed` and `protocol_lock.passed` with the lock SHA256 and
-matching study fingerprint. Lock the causal subset (initially 128 independent
-families), endpoint definitions, sample/candidates, calibration, stopping schedule,
-and exclusions before reading confirmation outcomes. No manual gate repair
-substitutes for the required science.
+Freeze to a new destination outside the editable source, using the matching dependency lock. Validate snapshot/environment hashes and document which executable config, data, and backend changes require new study identity or parity evidence. Do not point the existing run at an incompatible snapshot to bypass hash checks.
 
-Only then, for the implemented observational confirmation collection path:
+Documentation edits affect the editable checkout only. Existing jobs remain reproducible against their original snapshot. The original `../snapshot/` and `../venv/` belong to the earlier setup; the active paths come from the recovery environment.
+
+## Tests and saved reports
+
+Run the full suite on a scheduled CPU node, with the editable package explicitly selected:
 
 ```bash
-python "$REUSE_PROJECT_DIR/scripts/slurm/submit.py" confirm --config configs/confirmation.yaml --num-shards 4 --concurrency 2 --resume --dry-run
-python "$REUSE_PROJECT_DIR/scripts/slurm/submit.py" confirm --config configs/confirmation.yaml --num-shards 4 --concurrency 2 --resume
+PYTHONPATH="$REUSE_SOURCE_DIR/src" python -m unittest discover -s "$REUSE_SOURCE_DIR/tests" -v
 ```
 
-The CLI may deliberately reject a stage whose scientific implementation or
-prerequisites are incomplete. A scheduler wrapper does not turn an unsupported
-model analysis into a completed experiment. Keep those endpoints pending.
-
-After recording the actual confirmation array ID, merge its observations and
-run CPU confirmation analysis only after that merge completes:
+The historical CPU package can be checked or recomputed from saved synthetic measurements on a scheduled CPU node:
 
 ```bash
-export REUSE_CONFIRM_JOB_ID="REPLACE_WITH_RETURNED_NUMERIC_ID"
-python "$REUSE_PROJECT_DIR/scripts/slurm/submit.py" merge --config configs/confirmation.yaml --num-shards 4 --dependency "$REUSE_CONFIRM_JOB_ID" --dry-run
-python "$REUSE_PROJECT_DIR/scripts/slurm/submit.py" merge --config configs/confirmation.yaml --num-shards 4 --dependency "$REUSE_CONFIRM_JOB_ID"
-python "$REUSE_PROJECT_DIR/scripts/slurm/submit.py" fit --config configs/confirmation.yaml --dry-run
-python "$REUSE_PROJECT_DIR/scripts/slurm/submit.py" fit --config configs/confirmation.yaml
+PYTHONPATH="$REUSE_SOURCE_DIR/src" python -m reuseinterp.cli verify-results --run-dir "$REUSE_SOURCE_DIR/results/cpu-preparation-20261016"
+PYTHONPATH="$REUSE_SOURCE_DIR/src" python -m reuseinterp.cli report --run-dir "$REUSE_SOURCE_DIR/results/cpu-preparation-20261016"
 ```
 
-The confirmation configuration has `merge_stage=confirmation` and
-`analysis_stage=confirmation`; CPU fitting consumes frozen discovery models and
-calibrations without refitting them. A completed capture array alone is not a
-P1/P2 statistical result. Causal P3 collection remains pending even if
-observational P1/P2 later complete.
+These commands do not load the model. That package records synthetic engineering checks, not current cluster measurements. Reporting templates still contain CPU preparation assumptions and must be updated before publishing real model reports. Keep raw captures and compact recomputation inputs in approved retained storage; no laptop transfer is required for normal operation.
 
-## 6. Monitor, account, and restart
-
-```bash
-squeue -u "$USER"
-export REUSE_JOB_ID="REPLACE_WITH_RETURNED_NUMERIC_ID"
-sacct -j "$REUSE_JOB_ID" --format=JobID,State,ExitCode,Elapsed,AllocTRES,MaxRSS
-python "$REUSE_PROJECT_DIR/scripts/slurm/submit.py" account --refresh
-```
-
-Inspect stderr/stdout and scheduler states for OOM, timeout, invalid dependencies,
-or preemption. MaxRSS is host memory. GPU peaks come from PyTorch measurements.
-The ledger stores all submission requests, immutable hashes, job IDs, attempts,
-and raw `sacct` evidence. `account --refresh` requests parsable per-job records;
-`account --sacct-file /path/saved.txt` accepts the same
-`JobID|State|ElapsedRaw|AllocTRES` format. It ignores `.batch`, `.extern`, and
-other step rows and uses each array task once. If allocation data are missing,
-it refuses to release the reservation.
-
-The project cap is **30 GPU-hours total**, including smoke, pilot, every array
-task, and retries. `REUSE_GPU_HOUR_CAP` can lower it. Each submission reserves
-the full requested walltime for all selected tasks, including queued tasks.
-Completed/failed/cancelled tasks consume actual allocated GPU time after
-reconciliation. Running tasks retain their entire maximum request. Queue wait
-does not count; array concurrency changes turnaround, not total GPU-hours.
-Reservations are protected by a filesystem lock to prevent concurrent
-submissions exceeding the cap. Use one shared ledger for the whole project;
-`--ledger` is for relocating that same ledger, not starting another allowance.
-
-For an interrupted capture array, first wait until the old task is terminal and
-refresh accounting, then resubmit only failed indices:
-
-```bash
-python "$REUSE_PROJECT_DIR/scripts/slurm/submit.py" account --refresh
-python "$REUSE_PROJECT_DIR/scripts/slurm/submit.py" capture --config configs/discovery.yaml --num-shards 4 --indices 1,3 --concurrency 2 --resume --dry-run
-python "$REUSE_PROJECT_DIR/scripts/slurm/submit.py" capture --config configs/discovery.yaml --num-shards 4 --indices 1,3 --concurrency 2 --resume
-```
-
-The original `--num-shards`, snapshot, and configuration hashes must remain
-identical. The wrapper refuses concurrent duplicate writers. CLI resume skips
-only validated committed records and recomputes incomplete records. USR1/TERM
-handlers request a stop at a safe family boundary; handlers perform no complex
-I/O. An incomplete graceful stop exits nonzero (75), so afterok cannot consume
-partial results. Submissions request `--no-requeue`; manual retries remain
-separate ledger entries with their own reserved/consumed time. Recreate dependent jobs
-after a failed predecessor/retry; old dependencies do not necessarily recover.
-
-Before production arrays, a **real scheduled** small interruption/resume check
-must match uninterrupted output within locked tolerance. The local synthetic
-resume test is infrastructure evidence only. Preserve failure reasons and retry
-history; retries are never free GPU time.
-
-## 7. Download and recompute on CPU
-
-Do not wait until scratch purge to plan retention. Record approved long-term
-locations and backup status for raw captures and external datasets. The small
-report package must include raw scores/predictions, row identifiers, metadata,
-hashes, exclusions, resource/accounting evidence, and every input required for
-reported metrics/figures. Full model weights and all activation dumps are not
-needed for CPU figure recomputation.
-
-On the laptop:
-
-```bash
-export REUSE_REMOTE_RUN="/REPLACE/shared/results/ACTUAL_RUN"
-export REUSE_LOCAL_RUN="results/ACTUAL_RUN"
-mkdir -p "$REUSE_LOCAL_RUN"
-rsync -av "mliu171@ssh.ccv.brown.edu:$REUSE_REMOTE_RUN/report-package/" "$REUSE_LOCAL_RUN/report-package/"
-python -m reuseinterp.cli verify-results --run-dir "$REUSE_LOCAL_RUN/report-package"
-python -m reuseinterp.cli report --run-dir "$REUSE_LOCAL_RUN/report-package"
-```
-
-Replace `ACTUAL_RUN` with the real run ID and use the actual produced package
-layout. Reporting consumes saved measurements and must never launch inference.
-At a failed gate, resource cap, or access blocker, preserve completed artifacts,
-record remaining checks as pending, and run the partial report. No model result
-is inferred from synthetic fixtures or from successful scheduler syntax.
-
-## Acceptance record
-
-- CPU checked: shell syntax, fake `sbatch`, explicit optional flags/exports,
-  frozen-snapshot mutation rejection, backend-gate presence, array arguments,
-  duplicate refusal, conservative budget, and no step double-counting.
-- CPU pipeline separately checks deterministic family sharding, interruption/
-  resume with no omitted/duplicate committed keys, and incomplete merge rejection.
-- Pending: approved SSH access, site/resource verification, supported Linux
-  dependency installation, complete pinned offline cache, real CUDA preflight,
-  numerical smoke, measured pilot/capability, real interruption/resume check,
-  all model capture/discovery/confirmation, and actual scheduler accounting.
-
-Official scheduler references: [sbatch](https://slurm.schedmd.com/sbatch.html),
-[arrays](https://slurm.schedmd.com/job_array.html), and
-[sacct](https://slurm.schedmd.com/sacct.html). Local Brown policy takes precedence.
+For a new installation, see [BROWN_QUICKSTART.md](BROWN_QUICKSTART.md). For the resolved CUDA incident and raw records, see [CLUSTER_EXECUTION.md](CLUSTER_EXECUTION.md).

@@ -1,0 +1,98 @@
+## SLURM PROLOG ###############################################################
+##    Job ID : 7517514
+##  Job Name : poles-verify
+##  Nodelist : node1828
+##      CPUs : 1
+##  Mem/Node : 4096 MB
+## Directory : /oscar/home/mliu171/reuseinterp-loopvl
+##   Job Started : Sat Oct 17 13:01:02 EDT 2026
+###############################################################################
+scripts/verify_poles_pilot.py: OK
+src/reuseinterp/__init__.py: OK
+src/reuseinterp/io.py: OK
+src/reuseinterp/poles.py: OK
+tests/test_poles.py: OK
+{
+  "verification": {
+    "passed": true,
+    "raw_capture_files_verified": 72,
+    "raw_shapes_and_finiteness_passed": true,
+    "pooled_arrays_exactly_reproduce_raw_captures": true,
+    "primary_statistics": {
+      "passed": true,
+      "primary_statistics_sha256": "0467604bcde0138a9bfa164f1c44f958e5de3f75c04f1a739904e8209a4d38b4",
+      "images": 64
+    },
+    "layer_order_restored_from_recorded_capture_list": [
+      "0",
+      "7",
+      "15"
+    ],
+    "verification_script_sha256": "ea82498a2738d6d49883725dec21982ff046a8db0fae40f46a053448597ebefc"
+  },
+  "descriptive_context": {
+    "layer_order": [
+      "0",
+      "7",
+      "15"
+    ],
+    "signed_image_mean_counts_by_layer_and_invocation": {
+      "0": [
+        1,
+        4,
+        3,
+        8,
+        6,
+        5
+      ],
+      "7": [
+        3,
+        5,
+        6,
+        7,
+        4,
+        6
+      ],
+      "15": [
+        2,
+        2,
+        2,
+        2,
+        5,
+        0
+      ]
+    },
+    "color_edit_eligible_pair_unit_comparisons": 1535,
+    "color_edit_total_pair_unit_comparisons": 1536,
+    "color_edit_sign_agreements_pooled": 775,
+    "color_edit_pooled_sign_agreement": 0.504885993485342,
+    "color_edit_median_absolute_delta_by_invocation": [
+      0.005683109164237976,
+      0.006261356174945831,
+      0.007851282134652138,
+      0.009916281327605247,
+      0.00875086709856987,
+      0.00962725467979908
+    ],
+    "color_edit_positive_delta_counts_by_invocation": [
+      769,
+      783,
+      778,
+      770,
+      730,
+      756
+    ],
+    "color_edit_negative_delta_counts_by_invocation": [
+      767,
+      753,
+      758,
+      765,
+      806,
+      779
+    ],
+    "prompt_control_max_absolute_change": 1.2595934867858887,
+    "prompt_control_median_absolute_change": 0.0034190360456705093,
+    "capture_compressed_bytes": 39727246,
+    "interpretation": "Descriptive context for the same pilot; no additional hypothesis test or semantic label."
+  }
+}

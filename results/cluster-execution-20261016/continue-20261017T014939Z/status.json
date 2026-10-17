@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "updated_utc": "2026-10-17T01:50:56.566842+00:00",
+  "status": "cpu_environment_recovery_submitted",
+  "job_id": "7496249",
+  "scheduler_connectivity": "working",
+  "previous_uncertain_submission": "absent in live queue and accounting query",
+  "gpu_hours_requested": 0,
+  "model_findings": [],
+  "next": "On next user-requested status check, inspect job logs and recovery_state.json; submit GPU validate only after successful recovery",
+  "monitoring_policy": "/oscar/AGENTS.md prohibits automatic polling",
+  "evidence": [
+    "scheduler_checks.json",
+    "recovery_submission.json"
+  ]
+}

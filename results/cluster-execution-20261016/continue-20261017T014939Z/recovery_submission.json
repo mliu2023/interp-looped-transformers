@@ -1,0 +1,28 @@
+{
+  "created_utc": "2026-10-17T01:50:17.260656+00:00",
+  "command": [
+    "sbatch",
+    "--parsable",
+    "--no-requeue",
+    "--partition=batch",
+    "--account=default",
+    "--qos=normal",
+    "--export=REUSE_RECOVERY_BASE=/oscar/home/mliu171/reuseinterp-loopvl,REUSE_RECOVERY_NAME=recovery-cu128-20261016",
+    "--output=/oscar/home/mliu171/reuseinterp-loopvl/runs/logs/recovery-%j.out",
+    "--error=/oscar/home/mliu171/reuseinterp-loopvl/runs/logs/recovery-%j.err",
+    "/oscar/home/mliu171/reuseinterp-loopvl/source/scripts/slurm/recover_cuda12.sbatch"
+  ],
+  "kind": "cpu",
+  "max_gpu_hours": 0,
+  "cpus": 1,
+  "host_memory": "16G",
+  "wall_seconds": 3600,
+  "previous_submission_resolved": "No active queue jobs and no accounting rows for reuseinterp-env since 2026-10-16",
+  "script_sha256": "92f79795536225611466c17cf2181d482760fdbb0bbf8ee3d62a23dd3dc2edf5",
+  "helper_sha256": "e02de7ef42fb1e39e169e84a014577b0dc53d6558431434e8dfb6bc4bca63ffb",
+  "returncode": 0,
+  "stdout": "7496249\n",
+  "stderr": "",
+  "state": "submitted",
+  "job_id": "7496249"
+}

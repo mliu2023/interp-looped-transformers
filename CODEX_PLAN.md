@@ -1,8 +1,6 @@
 # Codex execution plan: functional consistency under weight reuse
 
-Updated October 16, 2026. Prepared for Max Liu and collaborators.
-Status: research execution specification. No experiments in this revised plan have been run.
-This replaces the earlier plan centered on visual-anchor swaps and a particular reasoning trace.
+Scientific protocol prepared October 16, 2026 for Max Liu and collaborators. Operational instructions updated October 17 for direct execution on Oscar. [PROGRESS.md](PROGRESS.md) records measured status; [CLUSTER_RUNBOOK.md](docs/CLUSTER_RUNBOOK.md) contains the current commands. Basic GPU parity has passed at a diagnostic site; the scientific endpoints remain unmeasured.
 
 ## 0. Mission and completion contract
 
@@ -75,7 +73,7 @@ Primary analysis concerns the first answer prediction, before any answer token e
 
 Read the target repository's AGENTS.md and existing experiment conventions. Work on an isolated branch/worktree when appropriate. Do not overwrite existing results. Preserve unrelated changes. No full-model training, extra-loop sweeps, SAE training, paid provisioning, or complete benchmark reproduction is required.
 
-Implement the following interfaces; they are proposed interfaces, not existing upstream commands:
+The study implementation uses the following package structure. See PROGRESS.md for incomplete components:
 
     src/reuseinterp/model_adapter.py
     src/reuseinterp/data/
@@ -93,7 +91,7 @@ Implement the following interfaces; they are proposed interfaces, not existing u
 
 Use configuration files, atomic shards, resumable jobs, and configuration hashes. A result key is the example, physical site, invocation, condition, and seed. Refuse to merge incompatible manifests. Save failures and exclusions explicitly.
 
-Do not implement downstream machinery based on guessed hook names. Audit a loaded model first. CPU-only implementation and tests are useful when GPU access is absent; clearly mark all unrun model experiments.
+Do not implement downstream machinery based on guessed hook names. Use the loaded architecture audit and repeat validation for new instrumentation. Engineering tests and model measurements establish different kinds of evidence; record their scope separately.
 
 ## 4. Milestone A — numerical and intervention validity
 
@@ -181,7 +179,7 @@ Do not mix strata into one undifferentiated population. Normalize aggregation we
 
 For object-pooled MLP products, pool only after recording actual token activations. Later interventions must act on real token activations, never on a synthetic pooled vector.
 
-At a small prespecified set of physical layers, e.g. zero-based indices 0, 5, 10, 15, also capture pooled normalized MLP-input states and selected block-output states for representation probes. Save exact conventions.
+At the prespecified physical state layers, currently zero-based indices 0 and 5 in the configs, also capture pooled normalized MLP-input states and selected block-output states for representation probes. This existing reduction preserves the output budget; save exact conventions.
 
 Stream selected channels/pooled representations to CPU. Do not retain all attention matrices or all full-token activations. Full tensors are permitted for a small diagnostic subset only.
 
@@ -383,7 +381,7 @@ Data tests must independently verify scene labels, edits, uniqueness of referent
 
 ## 13. Resources, execution order, and stopping
 
-The user has no local GPU. Prepare and test CPU components locally, and run GPU experiments on the university cluster through Slurm using section 13A. A single GPU with approximately 24 GB VRAM is a planning target, not a verified requirement; measure actual compatibility and peak memory before scaling. Use additional GPUs only for independent shards unless model sharding is explicitly validated. Do not provision paid resources as part of this plan.
+Work directly in the Oscar checkout. Model inference and substantial CPU work run in Slurm allocations using section 13A and the cluster runbook. Basic parity has run on an RTX A6000; measure full pilot runtime and peak memory before scaling. Use additional GPUs only for independent shards unless model sharding is explicitly validated. Do not provision paid resources as part of this plan.
 
 Default initial ceiling: 30 GPU-hours across smoke/pilot/discovery/confirmation, plus a configurable 20 GiB research-output budget excluding model weights and source datasets. These are ceilings, not runtime promises. The executing agent may use a smaller cap supplied by the user.
 
@@ -402,162 +400,30 @@ When over budget, reduce exploratory extensions and candidate count before weake
 
 Checkpoint progress every 25 families and on termination signals. At the cap or an external blocker, produce a partial report with completed work, failed gates, exact pending commands, and measured resource use. Never fabricate results or use bundled paper measurements as fresh experimental output.
 
-## 13A. University-cluster execution with Slurm
+## 13A. Cluster execution requirements
 
-The user has no local GPU. Implement and document a laptop-to-cluster workflow. GPU experiments run only inside Slurm allocations on the university cluster. Local GPU availability is not a prerequisite for preparing the project.
+Use [CLUSTER_RUNBOOK.md](docs/CLUSTER_RUNBOOK.md) for activation, submission, accounting, resumption, and snapshot commands. The study base, environment, checkpoint, and data are already staged. Do not repeat the former laptop transfer and provisioning workflow.
 
-### Responsibilities and files to deliver
+- Edit `source/`; submit against an immutable snapshot and matching dependency lock. Keep model/data/runtime/configuration hashes and the returned scheduler IDs with each run.
+- Run model loading, parity, capability, capture, and interventions on scheduled GPU nodes. Run substantial fitting, merging, data generation, and reporting on scheduled CPU nodes.
+- Require CUDA/operator preflight and numerical parity on the actual backend. A changed backend or relevant instrumentation requires fresh validation. Preserve official precision and Slurm device visibility.
+- Start from the earliest unmet gate in PROGRESS.md. Timing requires at least 32 measured examples; capability requires the complete declared pilot evaluation and image controls. A timing pass alone cannot open capture.
+- Arrays require explicit site approval and a real scheduled interruption/resume check. Partition only whole scene families, keep original shard count across retries, and write separate atomic shards.
+- Commit at safe family boundaries and on requested termination. An incomplete graceful stop exits nonzero, such as 75. Merge verifies every expected shard, family, condition, hash, and completion marker. Prevent duplicate writers.
+- Refresh shared accounting before further submissions and retries. Count every allocated GPU task, failed run, and retry without double counting job steps. Outstanding/unknown jobs retain their maximum reservations. Queue time is separate; concurrency does not reduce GPU hours.
+- Inspect scheduler state only when requested and avoid automatic polling. Preserve failure reasons and retry history; resubmit only terminal failed work, and recreate dependencies when necessary.
+- Complete required control integration and the candidate specific causal runner before locking the corresponding experiment. An existing wrapper or draft protocol does not establish scientific readiness.
+- Reporting consumes saved measurements without loading a model. Preserve compact raw scores, fits, predictions, metadata, and checksums needed to recompute all results on cluster CPU nodes.
 
-- Laptop: edit code, run synthetic fixtures/data checks, prepare configurations, and regenerate reports from downloaded results.
-- Cluster login node: transfer code, inspect scheduler configuration, submit/monitor jobs, and perform only preparation permitted by university policy. Model inference, large rendering jobs, and substantial analysis belong in scheduled jobs.
-- GPU compute node: model loading, numerical parity, capability evaluation, capture, and interventions.
-- CPU compute node: substantial data generation, fitting, merging, and reporting.
-
-Create these files as part of implementation; the templates below are instructions, not already implemented commands:
-
-    configs/cluster.env.example
-    scripts/slurm/environment.sh
-    scripts/slurm/run_gpu.sbatch
-    scripts/slurm/run_cpu.sbatch
-    scripts/slurm/submit.py
-    scripts/cluster_preflight.py
-    docs/CLUSTER_RUNBOOK.md
-
-The runbook must contain the exact environment setup, smoke submission, array submission, restart, monitoring, and result-download commands for the actual cluster. Do not assume a particular university cluster, partition, GPU model, account, or QoS.
-
-### Discover resources and prepare a reproducible environment
-
-1. Inspect the cluster's own documentation and existing project job scripts. Record hostname, Slurm version, allowed partition/account/QoS, GPU request syntax, time limits, shared-storage paths, quotas, and purge policy. Useful read-only commands include:
-
-~~~bash
-sinfo -o "%P %a %l %G"
-scontrol show partition
-~~~
-
-2. Put site-specific settings in a local configuration copied from the example below. Replace every placeholder before submission; omit optional scheduler flags when unused. These are starting resource requests, not measured requirements. Slurm host memory and GPU VRAM are separate resources.
-
-~~~bash
-export REUSE_PROJECT_DIR="/absolute/shared/path/to/frozen-checkout"
-export REUSE_ENV_DIR="/absolute/shared/path/to/cluster-venv"
-export REUSE_RUN_ROOT="/absolute/shared/path/to/results"
-export REUSE_CACHE_ROOT="/absolute/shared/path/to/model-cache"
-export REUSE_PARTITION="REPLACE_WITH_GPU_PARTITION"
-export REUSE_ACCOUNT=""
-export REUSE_QOS=""
-export REUSE_GPU_REQUEST="gpu:1"
-export REUSE_CPUS="8"
-export REUSE_MEM="32G"
-export REUSE_TIME="01:00:00"
-~~~
-
-3. Build the Python environment on the cluster using the audited model's requirements, then pin dependencies. Do not copy a laptop virtual environment to Linux compute nodes. Put site-required module loading and environment activation in environment.sh; do not guess module versions. Prefer the university's supported environment/container approach if required. Never install or modify host GPU drivers.
-
-4. Stage the pinned model revision and datasets once on an approved download/login node, subject to local policy. Compute jobs must not redownload them independently. Set HF_HOME to REUSE_CACHE_ROOT. Enable offline model loading only after checking that weights, tokenizer, processor, and any audited custom code are cached. Keep credentials out of configuration snapshots and logs.
-
-5. Run cluster_preflight.py inside the GPU allocation. Record Python/PyTorch versions, CUDA availability, GPU name/VRAM, supported dtype, and actual device placement. Fail clearly if CUDA, required operators, or memory are unavailable; do not silently run model experiments on CPU. A dtype/backend change requires repeating parity checks. Preserve Slurm's device visibility instead of hard-coding physical GPU IDs.
-
-6. Freeze code and configuration before submitting a stage. Jobs must read an immutable checkout/snapshot, not a working tree being edited while queued. Record commit and snapshot/configuration hashes, dependency lock, model/data revisions, and scheduler resource requests. Shared checkpoints/results must survive job termination; node-local temporary storage is only a disposable cache.
-
-### Single-GPU smoke job
-
-Implement run_gpu.sbatch using this structure. Its environment script must load the validated site environment, activate REUSE_ENV_DIR, set cache paths, and validate required variables. The preflight script must exit nonzero on failure.
-
-~~~bash
-#!/usr/bin/env bash
-#SBATCH --job-name=reuseinterp
-#SBATCH --nodes=1
-#SBATCH --ntasks=1
-#SBATCH --signal=USR1@120
-set -euo pipefail
-
-cd "$REUSE_PROJECT_DIR"
-source scripts/slurm/environment.sh
-export PYTHONUNBUFFERED=1
-export OMP_NUM_THREADS="$SLURM_CPUS_PER_TASK"
-
-srun --ntasks=1 python -u scripts/cluster_preflight.py
-srun --ntasks=1 python -u -m reuseinterp.cli "$@"
-~~~
-
-Slurm options belong on submission commands or literal #SBATCH lines; shell variables inside #SBATCH directives do not expand. The example submission below assumes the chosen cluster accepts --gres. Adapt the GPU request flag to the documented local syntax.
-
-After completing CPU preparation, submit a short smoke run from the cluster:
-
-~~~bash
-source configs/cluster.local.env
-mkdir -p "$REUSE_RUN_ROOT/logs"
-sbatch --parsable --partition="$REUSE_PARTITION" --gres="$REUSE_GPU_REQUEST" --cpus-per-task="$REUSE_CPUS" --mem="$REUSE_MEM" --time="$REUSE_TIME" --output="$REUSE_RUN_ROOT/logs/%j.out" --error="$REUSE_RUN_ROOT/logs/%j.err" scripts/slurm/run_gpu.sbatch validate --config configs/smoke.yaml
-~~~
-
-If the cluster requires an account or QoS, add the corresponding verified flag. The submit.py wrapper must construct argument lists safely, support these optional flags, create log directories before sbatch, save returned job IDs, and offer --dry-run that prints commands/resource estimates without submitting. Explicitly export required runtime variables using the site's supported environment-export policy.
-
-The smoke configuration must run preflight plus Milestone A parity/hook checks. Only after success run the 32-example timing/memory pilot and capability gate. Use measured runtime and peak VRAM to set later requests. Reduce batch size first if memory is insufficient; do not silently change precision, quantization, model, or scientific endpoints. Request one GPU per shard; additional GPUs are for independent shards unless model sharding has been separately validated.
-
-### Arrays, stage dependencies, and resumption
-
-Implement array support for baseline, capture, and confirmation. With --slurm-array, the CLI reads SLURM_ARRAY_TASK_ID as --shard-index; --num-shards remains explicit and fixed across retries. Assign whole scene families deterministically to shards, keeping paired edits and all required conditions together. Each shard writes to its own directory under the configured run ID. Never have tasks append concurrently to one CSV or progress file.
-
-For example, after all prerequisite gates pass, submit a capture stage with four shards, at most two running together:
-
-~~~bash
-sbatch --parsable --partition="$REUSE_PARTITION" --gres="$REUSE_GPU_REQUEST" --cpus-per-task="$REUSE_CPUS" --mem="$REUSE_MEM" --time="$REUSE_TIME" --array=0-3%2 --output="$REUSE_RUN_ROOT/logs/%A_%a.out" --error="$REUSE_RUN_ROOT/logs/%A_%a.err" scripts/slurm/run_gpu.sbatch capture --config configs/discovery.yaml --slurm-array --num-shards 4 --resume
-~~~
-
-Use afterok dependencies when appropriate, followed by a CPU merge/validation job. The merger must verify expected family/condition coverage, compatible hashes, and completion markers for every required shard. Scheduler success alone is insufficient evidence of complete data. Keep discovery, protocol locking, and confirmation as distinct gated stages; do not queue confirmation against an unfinished discovery configuration.
-
-Install Python signal handlers for USR1 and TERM. The template requests advance USR1 notification to job steps. A handler should request a graceful stop; save at the next safe boundary rather than perform complex I/O inside the handler. Atomically commit results and progress at least every 25 families, and checkpoint more frequently when measured per-family time makes this necessary. On restart, skip only validated committed results; discard/recompute incomplete records.
-
-A gracefully stopped but incomplete shard must exit nonzero (for example, 75), so downstream afterok jobs cannot consume partial data. Automatic requeue is site-dependent and must not be assumed. Resubmit failed indices with the same run/configuration hashes and original --num-shards; refuse concurrent duplicate writers. If a predecessor failed, recreate/update dependent submissions as needed rather than assuming they will recover automatically after a retry. Keep retry history and failure reasons.
-
-### Monitoring, resource accounting, and collecting results
-
-~~~bash
-squeue -u "$USER"
-sacct -j ACTUAL_JOB_ID --format=JobID,State,ExitCode,Elapsed,AllocTRES,MaxRSS
-~~~
-
-Use actual returned job IDs. Inspect logs and scheduler states for out-of-memory errors, timeouts, missing dependencies, and preemption. MaxRSS is host memory; additionally record PyTorch peak allocated/reserved GPU memory.
-
-Count GPU-hours across all allocated GPU tasks, including smoke runs and retries, without double-counting job-step accounting rows. Queue wait is separate. Enforce the 30 GPU-hour project ceiling before submissions: include already consumed time and the maximum requested GPU time of outstanding jobs when checking available budget. Array concurrency reduces elapsed turnaround, not total GPU-hours. Keep an accounting ledger and an explicit remaining budget.
-
-Download the small report package and sufficient raw scores/predictions to reproduce all reported statistics. For example, on the laptop, replacing the host/path placeholders:
-
-~~~bash
-rsync -av university-login:/absolute/shared/path/to/results/ACTUAL_RUN/report-package/ ./results/ACTUAL_RUN/report-package/
-~~~
-
-Do not require model weights or full activation dumps to rebuild figures. Keep larger captures on approved cluster storage and document retention/backup before scratch purge. Reporting must work on CPU without importing/loading the VLM.
-
-### Acceptance checks and handoff
-
-Before cluster access: syntax-check shell scripts, test submit.py with a fake sbatch, verify deterministic family sharding, and simulate interruption/resume to ensure no duplicated or omitted committed results. Verify an incomplete shard blocks merge. These are infrastructure checks, not model findings.
-
-On the cluster: require a real GPU preflight, successful numerical smoke checks, measured pilot resources, and one interrupted/resumed small run matching an uninterrupted run within the declared numerical tolerance. Run CPU analysis through run_cpu.sbatch when it is too heavy for a laptop; that script requests no GPU and must not invoke the GPU preflight.
-
-If Codex cannot access the cluster, it must finish CPU preparation and deliver the exact scripts/commands plus a handoff checklist. Mark GPU jobs and cluster-specific verification as pending. Do not claim submission or completion without scheduler IDs and saved outputs. No cluster password or private key belongs in the repository or chat.
-
-Official operational references: [sbatch](https://slurm.schedmd.com/sbatch.html), [job arrays](https://slurm.schedmd.com/job_array.html), and [sacct](https://slurm.schedmd.com/sacct.html). Local university documentation takes precedence for resource names and usage policy.
+The existing site instructions govern resource names and job submission. The historical provisioning specification is preserved in [the archive](docs/archive/20261017/CODEX_PLAN.md); it is not the current operating procedure.
 
 ## 14. Command and result contract
 
-Implement a single CLI. Example commands after implementation:
+The `reuseinterp.cli` entry point supports audit, validation, data preparation, baseline, capture, merge, fit, lock, confirmation, report, and verification stages. Execute substantial work through the configured Slurm submitter; current commands and activation paths are in the cluster runbook.
 
-~~~bash
-python -m reuseinterp.cli audit --config configs/smoke.yaml
-python -m reuseinterp.cli validate --config configs/smoke.yaml
-python -m reuseinterp.cli data --config configs/pilot.yaml
-python -m reuseinterp.cli baseline --config configs/pilot.yaml
-python -m reuseinterp.cli capture --config configs/discovery.yaml
-python -m reuseinterp.cli fit --config configs/discovery.yaml
-python -m reuseinterp.cli discover-causal --config configs/discovery.yaml
-python -m reuseinterp.cli lock --config configs/confirmation.yaml
-python -m reuseinterp.cli confirm --config configs/confirmation.yaml --dry-run
-python -m reuseinterp.cli confirm --config configs/confirmation.yaml
-python -m reuseinterp.cli verify-results --run-dir results/ACTUAL_RUN
-python -m reuseinterp.cli report --run-dir results/ACTUAL_RUN
-~~~
+`discover-causal` is an incomplete real collection interface. Confirmation is gated by a real protocol lock and compatible executor; its presence in CLI choices is not evidence that every protocol can run. Preserve these explicit boundaries.
 
-ACTUAL_RUN must be replaced with a real returned run directory. The report command must consume saved data without silently launching experiments. Provide a CPU-only command to recompute tables/figures from shared results. Add the Slurm array, deterministic sharding, resume, and completion-validation interfaces specified in section 13A; configuration files must resolve run outputs under REUSE_RUN_ROOT. GPU commands shown here run through the Slurm wrapper when executing on the cluster.
+Every report command consumes saved data without silently launching experiments. Provide a CPU command to recompute tables and figures from shared results, and resolve configured run outputs under `REUSE_RUN_ROOT`.
 
 Minimum result schema:
 
@@ -573,7 +439,7 @@ Every run manifest includes hardware, precision/backend, dependencies, seeds, co
 ## 15. Required final package
 
 - README with exact installation and reproduction commands.
-- Slurm submission scripts, environment/configuration examples, CLUSTER_RUNBOOK.md, scheduler job records, and resource-accounting ledger; clearly distinguish locally tested scripts from cluster-verified runs.
+- Slurm submission scripts, environment/configuration examples, CLUSTER_RUNBOOK.md, scheduler job records, and resource-accounting ledger; clearly distinguish engineering tests from model-verified measurements.
 - Architecture audit with code references and verified weight identity.
 - Data generator/adapter, split manifests, descriptors, masks, and validation report.
 - Protocol lock and hash; neuron sample and candidate-selection records.
@@ -607,17 +473,10 @@ This plan studies population-level representational consistency and causal use u
 
 R3 already tests visual-evidence/state reliance. R5 already demonstrates state-controlled transitions and causal attention routing. R6 already studies recurrent stages and stabilization. R8 motivates testing native neurons but does not establish neuron consistency in looped VLMs. Verify current versions and record changes before execution; avoid universal novelty claims.
 
-## 17. Paste this instruction into Codex
+## 17. Instruction for the executing agent
 
-~~~text
-Execute the attached CODEX_PLAN.md in the current research repository.
+Continue this scientific protocol in the editable `source/` checkout on Oscar. Read governing instructions, PROGRESS.md, the cluster runbook, and the current saved gates before choosing the next stage. Use existing validated staging and numerical evidence; do not restart completed setup merely because archived instructions describe it as pending.
 
-The scientific goal is to measure whether semantic descriptions and causal effects of the same physical LoopVL neurons transfer across recurrent invocations. Do not test the tautological claim that identical weights compute an identical function. Do not make a particular reasoning trace or anchor swap the project's central goal.
+Measure whether externally defined semantic selectivity, frozen readouts, and causal effect profiles transfer across repeated uses of fixed physical LoopVL neurons. Preserve the statistical definitions, family splits, resource cap, and discovery/confirmation boundary. Complete missing controls and the causal executor before claiming their endpoints.
 
-First read repository instructions, inspect available compute/data, and implement the numerical audit and synthetic analysis fixtures. There is no local GPU: complete CPU preparation locally and implement the Slurm workflow in section 13A for the university cluster. Keep site-specific settings configurable, start with a scheduled GPU smoke job, and use resumable independent shards only after validation. If cluster access is unavailable, deliver the executable handoff and mark GPU checks pending. Then build a broad task-family dataset, validate competence, capture a representative neuron sample, and implement discovery/confirmation separation.
-
-Proceed through the milestones on existing available resources. Lock the protocol before confirmation, obey the resource cap, and stop expanding once the declared endpoints and controls are complete. Record negative and inconclusive results honestly. If GPU or data access is blocked, complete useful CPU work and provide exact pending commands without inventing model results.
-
-The final package must let another researcher recompute every reported metric and figure from saved raw measurements. Every claim must identify its evidence, uncertainty, scope, and remaining alternative explanations.
-~~~
-
+For the image neuron replication and retraining extension, also follow [NEURON_REPLICATION_PLAN.md](docs/NEURON_REPLICATION_PLAN.md), keeping its new study identities distinct and sharing the resource limits. Deliver measurements with exact provenance, uncertainty, scope, and CPU recomputation. If a stage cannot proceed, complete independent useful work and record the pending action without inventing results.

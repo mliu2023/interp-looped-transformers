@@ -1,0 +1,8 @@
+{
+  "scope": "transcribed from this session tool outputs; no repeat scheduler queries",
+  "squeue_me": "No output; interrupted after nonresponse. No queue state obtained.",
+  "sacct_job_id": "7489067",
+  "sacct_stderr": "slurm_get_port: Address family '0' not supported; Error connecting, bad data: family = 0, port = 0; failed to open persistent connection to host:slurm01:6819: Resource temporarily unavailable; Problem talking to the database: Resource temporarily unavailable",
+  "new_submission": "recovery_submission.json",
+  "fresh_model_examples": 0
+}

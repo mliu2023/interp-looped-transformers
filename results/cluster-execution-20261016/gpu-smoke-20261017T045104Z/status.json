@@ -1,0 +1,22 @@
+{
+  "recovery_job_id": "7496249",
+  "status": "gpu_smoke_submitted",
+  "recovery_snapshot_sha256": "b7f0f4ae8ff760f8d79f6bce6a702cf14f731e34f5b14c98429b53103fd779ec",
+  "submitter_sha256": "18209ae40fd9684565b28762deef4f51301994c11f3748aeb4c7f8ad4ce666ab",
+  "focused_checks": {
+    "tests_run": 34,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "passed": true,
+    "scope": "lightweight scheduler guard regressions and upstream mask patch-order checks"
+  },
+  "previous_gpu_hours_accounted": true,
+  "max_new_gpu_hours": 1,
+  "job_id": "7501493",
+  "budget_after": {
+    "consumed_gpu_hours": 0.004722222222222222,
+    "outstanding_max_gpu_hours": 1.0,
+    "remaining_gpu_hours": 28.995277777777776
+  }
+}

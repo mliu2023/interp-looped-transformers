@@ -1,0 +1,26 @@
+[
+  {
+    "command": [
+      "squeue",
+      "--me"
+    ],
+    "status": "timeout",
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "sacct",
+      "-u",
+      "mliu171",
+      "-S",
+      "2026-10-16",
+      "--name=reuseinterp-env",
+      "--format=JobID,JobName,State,ExitCode,Elapsed",
+      "-P"
+    ],
+    "returncode": 1,
+    "stdout": "",
+    "stderr": "sacct: error: slurm_get_port: Address family '0' not supported\nsacct: error: Error connecting, bad data: family = 0, port = 0\nsacct: error: _open_persist_conn: failed to open persistent connection to host:slurm01:6819: Resource temporarily unavailable\nsacct: error: Sending PersistInit msg: Resource temporarily unavailable\nsacct: error: Problem talking to the database: Resource temporarily unavailable\n"
+  }
+]

@@ -10,5 +10,6 @@ private files, model weights, or published measurements are included.
 retaining its Apache license header. `checkpoint_config.json` duplicates the
 readable configuration used for the source audit.
 
-These artifacts verify source/metadata, not fresh model behavior. Byte checks of
-the staged weights and the loaded graph are GPU-stage requirements.
+These artifacts verify source/metadata, not fresh model behavior. The staged weight checks and loaded graph evidence are recorded separately in
+`../recovery-cu128-20261016/` and `../runs/` relative to the editable checkout.
+See [current progress](../PROGRESS.md) for their exact scope and remaining gates.

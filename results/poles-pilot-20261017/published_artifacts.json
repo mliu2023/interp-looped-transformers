@@ -1,0 +1,17 @@
+{
+  "files": {
+    "capture_validation.json": "263f8a8d5db393fd16f859f84b812b680a23d693d9750bb997bd8912d634f581",
+    "descriptive_context.json": "7ba5a0f6edd7e3fac44b8ba60d089f1b81356af418b050c1e8270a833049cdee",
+    "gpu-7517236.log": "385ddf6667e8ea356c395e0f34a6daa927b09d7935c80fce2bcb78fb9c335df0",
+    "image_rows.json": "881ffc5710b3cdcd52472c37b91932d5894cdc0095e4c81062cc23df4ff39646",
+    "per_neuron.csv": "8937a62fc01a00a4832b1fe152a0b1e57e2b8771a5612b5982242b83e76c27b7",
+    "pooled_measurements.npz": "d77e194f4432ca560528270d5aaba697335702a5acead355347925c22a76396e",
+    "protocol.json": "74772b7472fcf6defa4b39bacb432a1c92a901fd3a71c1d3d8d8c12eef6fe86a",
+    "signed_tail_gallery.png": "f3679a4f7877c8d628e2a93cd2feda9d78cb2c5c137ea479437c085c0f41829b",
+    "summary.json": "fad47900c2b639fe19d5f23f57387ff142f14e78471c12dfefbd5e26766d2c4a",
+    "verification-7517514.log": "4dc204577ccd565c5fbb0f1070b382467dd2d980257b202d2a0d9daff5ad4c02",
+    "verification-tests.log": "db1cb7bd05a929af29747fbc478b79c59364eb0d66bf14eba938a41a0342976f",
+    "verification.json": "9c06f846ac812e64ad45c75bb684dbd207ca221a8e4d2265346c433089a8db41"
+  },
+  "scope": "Compact published results; raw activations and model/data artifacts retained on cluster"
+}

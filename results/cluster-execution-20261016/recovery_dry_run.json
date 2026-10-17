@@ -1,0 +1,13 @@
+{
+  "destination": "/oscar/home/mliu171/reuseinterp-loopvl/recovery-cu128-20261016",
+  "torch": "2.8.0+cu128",
+  "torchvision": "0.23.0+cu128",
+  "index": "https://download.pytorch.org/whl/cu128",
+  "inputs": {
+    "REUSE_LOOPVL_DIR": "/oscar/home/mliu171/reuseinterp-loopvl/LoopVL",
+    "REUSE_MODEL_DIR": "/oscar/home/mliu171/reuseinterp-loopvl/model",
+    "REUSE_DATASET_DIR": "/oscar/home/mliu171/reuseinterp-loopvl/datasets/scenes-v1"
+  },
+  "scheduled_cpu_required": true,
+  "gpu_hours_reserved": 0
+}

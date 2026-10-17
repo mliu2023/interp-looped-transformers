@@ -195,11 +195,16 @@ def install(args, state):
         run(state, command + [venv])
     upstream = official_source(state)
     python = env_python(state)
+    # Keep later dependency resolution from replacing the selected CUDA build.
+    constraints = Path(state['base_dir']) / 'torch-pair.constraints.txt'
     if not args.use_installed_torch:
+        constraints.write_text('torch==' + args.torch_version + '\n'
+                               'torchvision==' + args.torchvision_version + '\n')
         run(state, [python, '-m', 'pip', 'install', '--only-binary=:all:', '--index-url', args.torch_index_url,
                     'torch==' + args.torch_version, 'torchvision==' + args.torchvision_version])
-    run(state, [python, '-m', 'pip', 'install', '-r', upstream / 'runtime/requirements.txt'])
-    run(state, [python, '-m', 'pip', 'install', str(Path(state['source_dir'])) + '[plots]'])
+    constraint_args = [] if args.use_installed_torch else ['--constraint', constraints]
+    run(state, [python, '-m', 'pip', 'install', *constraint_args, '-r', upstream / 'runtime/requirements.txt'])
+    run(state, [python, '-m', 'pip', 'install', *constraint_args, str(Path(state['source_dir'])) + '[plots]'])
     # This imports packages and runs a CPU operator only; no CUDA/model is initialized.
     pair = json.loads(run(state, [python, '-c',
         'import json,torch,torchvision; from torchvision.ops import nms; '
@@ -207,6 +212,11 @@ def install(args, state):
         'print(json.dumps({"torch":torch.__version__,"torchvision":torchvision.__version__,"cuda_runtime":torch.version.cuda}))'], capture=True))
     if not pair['cuda_runtime']:
         raise ValueError('CPU-only torch installation cannot run the scheduled GPU smoke; install the approved CUDA build')
+    if not args.use_installed_torch:
+        for name, requested in (('torch', args.torch_version), ('torchvision', args.torchvision_version)):
+            actual = pair[name] if '+' in requested else pair[name].split('+')[0]
+            if actual != requested:
+                raise ValueError('Installed ' + name + ' differs from the requested CUDA pair')
     state.update(installed=True, python_platform=info, torch_pair=pair)
     persist(state)
     print(json.dumps({'installed': True, 'torch_pair': pair, 'next': 'stage'}, indent=2))
@@ -408,8 +418,8 @@ def main(argv=None):
         command.add_argument('--base-dir', required=True)
         if name == 'install':
             command.add_argument('--torch-index-url', help='Explicit site-approved HTTPS PyTorch wheel index')
-            command.add_argument('--torch-version', default='2.12.1')
-            command.add_argument('--torchvision-version', default='0.27.1')
+            command.add_argument('--torch-version', default='2.8.0+cu128')
+            command.add_argument('--torchvision-version', default='0.23.0+cu128')
             command.add_argument('--use-installed-torch', action='store_true', help='Use a compatible CUDA pair supplied by site modules')
     args = parser.parse_args(argv)
     if args.phase == 'configure':

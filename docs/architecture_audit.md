@@ -1,8 +1,8 @@
-# LoopVL architecture audit — source verified, loaded checks pending
+# LoopVL architecture audit
 
-Audit date: 2026-10-16. No model weights were downloaded or loaded locally.
-There is no local CUDA GPU. The repository initially contained only CODEX_PLAN.md;
-no applicable AGENTS.md or existing experiments were found.
+Source audit performed October 16, 2026; loaded model evidence reviewed October 17. [PROGRESS.md](../PROGRESS.md) records current workflow status, and the [cluster runbook](CLUSTER_RUNBOOK.md) contains operating commands.
+
+The [loaded architecture audit](../../runs/loopvl-transfer-v1/loaded_architecture_audit.json) verifies structure and records parameters for all 16 L and 16 H MLP sites. The [numerical smoke](../../runs/loopvl-transfer-v1/parity_report.json) passed 64 checks on 16 examples at diagnostic layer 0, channel 0. Broader site validation, object alignment, and candidate specific causal checks remain separate requirements.
 
 ## Evidence and pinning
 
@@ -14,7 +14,8 @@ no applicable AGENTS.md or existing experiments were found.
   `checkpoint_files.json`, and `checkpoint/` preserve metadata and small inputs.
   Expected model.safetensors SHA-256 is
   `4d34dac46592a2ea273556fa29a540de9af8d8e3cff39f6e3e0ba54cd799f72f`.
-  This comes from Hub LFS metadata; verification of downloaded bytes is pending.
+  This comes from Hub LFS metadata; recovery staging records downloaded-byte
+  verification, and the loaded audit records the checkpoint hashes.
 - [Transformers 5.15.1 language implementation](https://github.com/huggingface/transformers/blob/v5.15.1/src/transformers/models/hrm_text/modeling_hrm_text.py)
   is preserved in `evidence/modeling_hrm_text.py` with its upstream license header.
 - The CPU static audit saves SHA-256 hashes of the actual source files inspected.
@@ -26,7 +27,7 @@ no applicable AGENTS.md or existing experiments were found.
 `down_proj(act_fn(gate_proj(x)) * up_proj(x))`. The primary neuron is that actual
 product channel. The pre-hook on `down_proj` captures/intervenes without replacing
 the MLP implementation. Gate/up branches serve reconstruction diagnostics.
-`down_proj` is audited as a linear module after loading; its bias is included.
+The loaded audit verifies `down_proj` as a linear module at every MLP site; reconstruction includes its bias if present.
 
 `HrmTextDecoderLayer` (238–278) RMS-normalizes before attention and before the
 MLP and adds residuals after both sublayers. `HrmTextRMSNorm` computes RMS in FP32
@@ -71,19 +72,10 @@ visual gate, and visual anchor. It checks stored tensor dtype/shape before loadi
 No whole-model dtype conversion, quantization, altered loop schedule, or training
 is introduced. Every model stage requires Slurm CUDA availability.
 
-## Required loaded-model acceptance
+## Loaded model evidence and remaining checks
 
-Pending: verify all loaded sites, parameter objects/storage/hashes at each matched
-invocation; reconstruct gate×up and product×down(+bias); 16 varied official smoke
-examples; actual invocation counts on every forward; independent official logits
-and generated-answer parity for capture/self/zero; exact local changed indices;
-donor alignment; actual model device placement; peak memory and runtime; real
-interruption/resumption parity. Synthetic toy-model checks cannot establish any
-of these for LoopVL.
+The saved smoke establishes official first prediction and greedy answer parity for capture, self replacement, and zero dose on 16 varied examples. It reconstructs gate times up and product times down projection, checks shared parameter identity across L invocations, and verifies one local change at L4 for the diagnostic layer 0/channel 0. Capture/self/zero logit errors were zero in that run, within the frozen 1e-6 absolute and margin tolerances.
 
-The smoke freezes tolerance from repeated official forwards before interventions,
-with absolute/margin floors of 1e-6 and caps 1e-4/1e-5. It saves absolute/relative
-errors, margin token IDs/errors, raw logits, output tokens, hook counts and exact
-changed coordinates. Any answer change fails. Backend changes require new parity.
-Candidate-specific donors and short-horizon causal collection remain pending;
-no donor/causal gate is claimed by basic numerical smoke.
+The loaded structure audit covers all 32 physical MLP sites, but the numerical hook/intervention test covers only that diagnostic site. Extend real checks as needed for selected layers, channels, token roles, and intervention conditions. A changed backend requires a new parity check.
+
+Still required: actual object mask/grid alignment, candidate donor/recipient alignment, full pilot runtime and peak memory, real interruption/resume parity, and the candidate specific short horizon causal collector. The basic numerical gate does not authorize donor or causal conclusions. Synthetic tests and source inspection remain supporting engineering evidence.

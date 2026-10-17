@@ -60,6 +60,38 @@ class ClusterSetupTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'already exists'):
             self.configure()
 
+    def test_install_constrains_followup_resolution_to_exact_cuda_build(self):
+        state = self.configure()
+        pair = {'torch': '2.8.0+cu128', 'torchvision': '0.23.0+cu128', 'cuda_runtime': '12.8'}
+        commands = []
+        def runner(actual_state, command, **kwargs):
+            commands.append(list(map(str, command)))
+            return json.dumps(pair) if '-c' in command else ''
+        with patch.object(setup, 'check_platform', return_value={'system': 'Linux', 'version': [3, 12, 1]}), \
+                patch.object(setup, 'official_source', return_value=self.base / 'LoopVL'), \
+                patch.object(setup, 'run', side_effect=runner), \
+                contextlib.redirect_stdout(io.StringIO()):
+            setup.install(self.install_args(torch_version='2.8.0+cu128', torchvision_version='0.23.0+cu128'), state)
+        constraint = self.base / 'torch-pair.constraints.txt'
+        self.assertEqual(constraint.read_text(), 'torch==2.8.0+cu128\ntorchvision==0.23.0+cu128\n')
+        followups = [command for command in commands if 'install' in command and '--only-binary=:all:' not in command]
+        self.assertEqual(len(followups), 2)
+        for command in followups:
+            self.assertEqual(command[command.index('--constraint') + 1], str(constraint))
+
+    def test_install_rejects_silent_cuda_build_replacement(self):
+        state = self.configure()
+        wrong = {'torch': '2.8.0+cu130', 'torchvision': '0.23.0+cu130', 'cuda_runtime': '13.0'}
+        def runner(actual_state, command, **kwargs):
+            return json.dumps(wrong) if '-c' in command else ''
+        with patch.object(setup, 'check_platform', return_value={'system': 'Linux', 'version': [3, 12, 1]}), \
+                patch.object(setup, 'official_source', return_value=self.base / 'LoopVL'), \
+                patch.object(setup, 'run', side_effect=runner), \
+                contextlib.redirect_stdout(io.StringIO()):
+            with self.assertRaisesRegex(ValueError, 'requested CUDA pair'):
+                setup.install(self.install_args(torch_version='2.8.0+cu128', torchvision_version='0.23.0+cu128'), state)
+        self.assertFalse(setup.load_state(self.base)['installed'])
+
     def test_configuration_rejects_nested_runtime_source(self):
         with self.assertRaisesRegex(ValueError, 'outside'):
             self.configure(base_dir=str(self.source / 'work'))

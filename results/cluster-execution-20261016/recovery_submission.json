@@ -1,0 +1,25 @@
+{
+  "created_utc": "2026-10-17T01:25:05.064282+00:00",
+  "command": [
+    "sbatch",
+    "--parsable",
+    "--no-requeue",
+    "--partition=batch",
+    "--account=default",
+    "--qos=normal",
+    "--export=REUSE_RECOVERY_BASE=/oscar/home/mliu171/reuseinterp-loopvl,REUSE_RECOVERY_NAME=recovery-cu128-20261016",
+    "--output=/oscar/home/mliu171/reuseinterp-loopvl/runs/logs/recovery-%j.out",
+    "--error=/oscar/home/mliu171/reuseinterp-loopvl/runs/logs/recovery-%j.err",
+    "/oscar/home/mliu171/reuseinterp-loopvl/source/scripts/slurm/recover_cuda12.sbatch"
+  ],
+  "script_sha256": "92f79795536225611466c17cf2181d482760fdbb0bbf8ee3d62a23dd3dc2edf5",
+  "kind": "cpu",
+  "max_gpu_hours": 0,
+  "wall_seconds": 3600,
+  "cpus": 1,
+  "host_memory": "16G",
+  "state": "submission_timeout_unknown",
+  "stdout": "",
+  "stderr": "",
+  "error": "sbatch did not return within 15 seconds; no job ID obtained; do not automatically retry"
+}

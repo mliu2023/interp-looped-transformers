@@ -1,0 +1,35 @@
+{
+  "recorded_utc": "2026-10-17T16:40:23.143502+00:00",
+  "run_id": "loopvl-poles-pilot-20261017",
+  "status": "retry_connection_checks_failed_no_new_submission",
+  "configuration_changed": false,
+  "ledger_changed": false,
+  "prior_reservation_id": "a3cc033c271c40f8b5e5a6deb3c7d619",
+  "model_measurements_observed": 0,
+  "checks": [
+    {
+      "command": "IPv4 socket creation in default command execution",
+      "result": "PermissionError: [Errno 1] Operation not permitted"
+    },
+    {
+      "command": "squeue --me with require_escalated",
+      "result": "Rejected automatically: granular approval policy has sandbox_approval=false and rules=false; escalated permissions cannot be requested"
+    },
+    {
+      "command": "squeue --me",
+      "exit_code": 0,
+      "active_jobs": []
+    },
+    {
+      "command": "sacct --user=mliu171 --starttime=2026-10-17 --allocations --noheader --parsable2 --format=JobID,JobName,State,Submit,ElapsedRaw,AllocTRES,WorkDir",
+      "exit_code": 1,
+      "stderr_summary": "Failed to open persistent connection to host:slurm01:6819: Resource temporarily unavailable; Problem talking to the database"
+    },
+    {
+      "command": "sbatch --test-only --partition=gpu-debug --cpus-per-task=1 --mem=32G --time=00:15:00 --account=default --qos=gpu-debug --gres=gpu:nvidia_rtx_a6000:1 /oscar/home/mliu171/reuseinterp-loopvl/experiments/loopvl-poles-pilot-20261017/snapshot/scripts/slurm/run_gpu.sbatch poles-pilot --config /oscar/home/mliu171/reuseinterp-loopvl/experiments/loopvl-poles-pilot-20261017/snapshot/configs/poles-pilot.yaml",
+      "exit_code": 1,
+      "output": "allocation failure: Unable to contact slurm controller (connect failure)",
+      "validation_only": true
+    }
+  ]
+}

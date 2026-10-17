@@ -1,0 +1,39 @@
+test_array_shards_and_retry_indices_fixed (test_slurm.SlurmTest.test_array_shards_and_retry_indices_fixed) ... ok
+test_backend_signature_exported_and_missing_signature_blocks (test_slurm.SlurmTest.test_backend_signature_exported_and_missing_signature_blocks) ... ok
+test_cap_includes_outstanding_retries_and_all_array_tasks (test_slurm.SlurmTest.test_cap_includes_outstanding_retries_and_all_array_tasks) ... ok
+test_changed_manifest_rejected_against_submission_hash (test_slurm.SlurmTest.test_changed_manifest_rejected_against_submission_hash) ... ok
+test_concurrent_duplicate_refused (test_slurm.SlurmTest.test_concurrent_duplicate_refused) ... ok
+test_cpu_account_and_qos_fall_back_only_when_unset (test_slurm.SlurmTest.test_cpu_account_and_qos_fall_back_only_when_unset) ... ok
+test_cpu_and_gpu_use_separate_account_and_qos (test_slurm.SlurmTest.test_cpu_and_gpu_use_separate_account_and_qos) ... ok
+test_cpu_merge_passes_original_count_without_scheduler_array (test_slurm.SlurmTest.test_cpu_merge_passes_original_count_without_scheduler_array) ... ok
+test_cpu_report_receives_run_dir_not_config (test_slurm.SlurmTest.test_cpu_report_receives_run_dir_not_config) ... ok
+test_cpu_wrapper_has_no_gpu_preflight_or_request (test_slurm.SlurmTest.test_cpu_wrapper_has_no_gpu_preflight_or_request) ... ok
+test_discovery_and_confirmation_cpu_stages_have_separate_retry_keys (test_slurm.SlurmTest.test_discovery_and_confirmation_cpu_stages_have_separate_retry_keys) ... ok
+test_dry_run_does_not_submit_or_write_ledger (test_slurm.SlurmTest.test_dry_run_does_not_submit_or_write_ledger) ... ok
+test_explicit_empty_cpu_settings_omit_account_and_qos (test_slurm.SlurmTest.test_explicit_empty_cpu_settings_omit_account_and_qos) ... ok
+test_failed_validation_can_use_repaired_snapshot_and_keeps_accounting (test_slurm.SlurmTest.test_failed_validation_can_use_repaired_snapshot_and_keeps_accounting) ... ok
+test_fake_sbatch_records_real_returned_id_and_budget (test_slurm.SlurmTest.test_fake_sbatch_records_real_returned_id_and_budget) ... ok
+test_gpu_setting_cannot_request_multiple_devices (test_slurm.SlurmTest.test_gpu_setting_cannot_request_multiple_devices) ... ok
+test_inherited_scheduler_defaults_cannot_expand_allocation (test_slurm.SlurmTest.test_inherited_scheduler_defaults_cannot_expand_allocation) ... ok
+test_optional_flags_and_exports_are_exact_arguments (test_slurm.SlurmTest.test_optional_flags_and_exports_are_exact_arguments) ... ok
+test_pilot_requires_parity_but_not_existing_pilot (test_slurm.SlurmTest.test_pilot_requires_parity_but_not_existing_pilot) ... ok
+test_repaired_validation_rejects_active_unknown_success_and_empty_histories (test_slurm.SlurmTest.test_repaired_validation_rejects_active_unknown_success_and_empty_histories) ... ok
+test_repaired_validation_requires_job_identity_study_and_shard_count (test_slurm.SlurmTest.test_repaired_validation_requires_job_identity_study_and_shard_count) ... ok
+test_research_hash_guards_remain_strict_after_failed_attempts (test_slurm.SlurmTest.test_research_hash_guards_remain_strict_after_failed_attempts) ... ok
+test_sacct_no_step_or_array_parent_double_count (test_slurm.SlurmTest.test_sacct_no_step_or_array_parent_double_count) ... ok
+test_shell_syntax (test_slurm.SlurmTest.test_shell_syntax) ... ok
+test_smoke_and_pilot_cannot_be_arrays (test_slurm.SlurmTest.test_smoke_and_pilot_cannot_be_arrays) ... ok
+test_snapshot_preserves_source_data_and_detects_mutation (test_slurm.SlurmTest.test_snapshot_preserves_source_data_and_detects_mutation) ... ok
+test_stale_fingerprint_blocks_confirmation (test_slurm.SlurmTest.test_stale_fingerprint_blocks_confirmation) ... ok
+test_uncertain_submission_retains_worst_case_reservation (test_slurm.SlurmTest.test_uncertain_submission_retains_worst_case_reservation) ... ok
+test_unscheduled_preflight_fails_before_importing_torch (test_slurm.SlurmTest.test_unscheduled_preflight_fails_before_importing_torch) ... ok
+test_unused_flags_omitted_and_no_shell (test_slurm.SlurmTest.test_unused_flags_omitted_and_no_shell) ... ok
+test_all_masks_have_equal_total_weight_and_edit_alignment (test_alignment.MaskAlignmentTests.test_all_masks_have_equal_total_weight_and_edit_alignment) ... ok
+test_exact_fractional_coverage_and_normalization (test_alignment.MaskAlignmentTests.test_exact_fractional_coverage_and_normalization) ... ok
+test_unsupported_transforms_are_explicit_errors (test_alignment.MaskAlignmentTests.test_unsupported_transforms_are_explicit_errors) ... ok
+test_upstream_patchify_row_major_with_merge_one (test_alignment.MaskAlignmentTests.test_upstream_patchify_row_major_with_merge_one) ... ok
+
+----------------------------------------------------------------------
+Ran 34 tests in 3.308s
+
+OK

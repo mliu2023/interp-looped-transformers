@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "created_utc": "2026-10-17T01:29:07.423383+00:00",
+  "files": {
+    "recovery_submission.json": "00969e12245f20ffdc59f0da1d971e1671faad10cdce0125a99e1b9e6f546ddf",
+    "tests.log": "e6a3ed7f9777d8e5192ae5880318c8e180ac687c661af6bff28ed9215c2452a8",
+    "tests_summary.json": "14a4d86d9852cdca650f0cafa866fd691e7fbfa23b1f3c5a92199a94db88ab81",
+    "recovery_dry_run.json": "7e2ba870b3e0d155a2f79ceee11be458713c17a2349eb06ed1805b99e0db1b40",
+    "scheduler_diagnostics.json": "a92ceec39bf4a5ea40e7a3854a2d7fc9fc7d0c50b5c8d5d0727d09301b13e604",
+    "raw/scheduler_ledger.json": "817d8ca30713925f77f1b310be91dab34d5fa3a00ebfd410ccf65a5b59a18806",
+    "raw/preflight_7489067.json": "4d490bb385aa68066f7129f5c00a876bda2a4757317d7f9c8dc712ee10f37981",
+    "raw/7489067.err": "468b43e34aef1c21c009dcf90503e8032aa15ac99f2ef884cb15e5663197d499",
+    "raw/7489067.out": "8cc63ba534b6ecee8d150f59de190cc17aa4972d283fb637d1182cc2c8c777a4",
+    "raw/7489067.sacct.txt": "77ddfe6820aa0fa9fc07c2f2b7be9a81b9a99e89d0d850360985519d10a9c3e0"
+  },
+  "prepared_source_hashes": {
+    "scripts/cluster_setup.py": "afc25930666b186adc8128b4c0b9ef08f1bdee5ba71d58c1c81e2369245d0e3f",
+    "scripts/recover_cuda12.py": "e02de7ef42fb1e39e169e84a014577b0dc53d6558431434e8dfb6bc4bca63ffb",
+    "scripts/report_cluster_execution.py": "038e7acf7a887b66c7a06ebe80c64293de6ba27aae5bb23ccc58e9a11400c526",
+    "tests/test_cluster_setup.py": "6c77cded45bac22614d0a827d994bcd007eb55081a960cabd25b2713f1a35c63",
+    "tests/test_cuda_recovery.py": "c70707cce804b37933fc78255fdef7fd2b60f2f7d797c779827c997972722d32",
+    "scripts/brown_setup.sh": "dc597baa35b30f75d43bb47505dcf61585998d1c9286ab84034d56af0cdb62fa",
+    "scripts/slurm/recover_cuda12.sbatch": "92f79795536225611466c17cf2181d482760fdbb0bbf8ee3d62a23dd3dc2edf5"
+  },
+  "shell_syntax": "passed",
+  "python_syntax": "passed"
+}

@@ -1,0 +1,35 @@
+{
+  "accounting_scope": "saved scheduler ledger, not a live scheduler reconciliation",
+  "gpu_hour_cap": 30.0,
+  "model_endpoints": {
+    "P1": null,
+    "P2": null,
+    "P3": null
+  },
+  "model_examples_measured": 0,
+  "prior_gpu_job_ids": [
+    "7489067"
+  ],
+  "recovery_job_id": null,
+  "recovery_submission_state": "submission_timeout_unknown",
+  "saved_accounting": {
+    "consumed_gpu_hours": 0.004722222222222222,
+    "outstanding_max_gpu_hours": 0.0,
+    "remaining_gpu_hours": 29.995277777777776
+  },
+  "schema_version": 1,
+  "status": "blocked_before_model_loading",
+  "targeted_cpu_checks": {
+    "errors": 0,
+    "failures": 0,
+    "passed": true,
+    "patterns": [
+      "test_cluster_setup.py",
+      "test_cuda_recovery.py",
+      "test_slurm.py"
+    ],
+    "scope": "standard-library setup/recovery/Slurm engineering tests only; no model execution",
+    "skips": 0,
+    "tests_run": 49
+  }
+}

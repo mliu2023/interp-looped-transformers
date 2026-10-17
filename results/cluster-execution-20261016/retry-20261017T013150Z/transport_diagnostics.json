@@ -1,0 +1,19 @@
+{
+  "hostname": "login010",
+  "slurm_conf_override": null,
+  "ipv4_socket": {
+    "exception": "PermissionError",
+    "errno": 1,
+    "message": "[Errno 1] Operation not permitted"
+  },
+  "ipv6_socket": {
+    "exception": "PermissionError",
+    "errno": 1,
+    "message": "[Errno 1] Operation not permitted"
+  },
+  "controller_lookup": {
+    "returncode": 2,
+    "stdout": "",
+    "stderr": ""
+  }
+}

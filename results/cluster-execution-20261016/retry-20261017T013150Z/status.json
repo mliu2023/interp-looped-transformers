@@ -1,0 +1,14 @@
+{
+  "status": "blocked_by_session_network_permissions",
+  "new_submission_attempted": false,
+  "previous_submission_state": "unknown; no scheduler ID obtained",
+  "hostname": "login010",
+  "slurm_version": "25.05.5",
+  "evidence": [
+    "scheduler_checks.json",
+    "transport_diagnostics.json"
+  ],
+  "observed_cause": "IPv4 and IPv6 socket creation both raise PermissionError errno 1 (Operation not permitted)",
+  "pending": "Session permissions must permit Slurm networking before queue reconciliation and resubmission",
+  "official_network_setting_reference": "https://learn.chatgpt.com/docs/config-file/config-reference"
+}

@@ -1,0 +1,4 @@
+7489067|FAILED|17|billing=116,cpu=8,gres/gpu=1,mem=32G,node=1
+7489067.batch|FAILED|17|cpu=8,gres/gpu=1,mem=32G,node=1
+7489067.extern|COMPLETED|17|billing=116,cpu=8,gres/gpu=1,mem=32G,node=1
+7489067.0|FAILED|12|cpu=8,gres/gpu=1,mem=32G,node=1

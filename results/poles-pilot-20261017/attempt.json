@@ -1,0 +1,90 @@
+{
+  "automatic_retry_attempted": false,
+  "handoff_integrity": {
+    "channels": 48,
+    "families": 32,
+    "images": 64,
+    "run_directory_present": false,
+    "source_config_matches_snapshot": true,
+    "source_execution_files_match_snapshot": true
+  },
+  "local_engineering_checks": {
+    "batch_shell_syntax": "passed",
+    "checkpoint_specific_capture_validation": "not executed",
+    "git_diff_check": "passed",
+    "python_compile": "passed",
+    "test_poles": {
+      "failures": 0,
+      "tests": 3
+    },
+    "test_slurm": {
+      "failures": 0,
+      "tests": 32
+    }
+  },
+  "local_network_diagnostic": {
+    "AF_INET6_socket_creation": "PermissionError: [Errno 1] Operation not permitted",
+    "AF_INET_socket_creation": "PermissionError: [Errno 1] Operation not permitted",
+    "inference": "This session cannot communicate with Slurm; cluster controller health is not established.",
+    "slurm01_resolution": "gaierror [Errno -2] Name or service not known"
+  },
+  "model_measurements_observed": 0,
+  "recorded_utc": "2026-10-17T16:32:38.973228+00:00",
+  "reservation_released": false,
+  "scientific_conclusions": [],
+  "status": "submission_failed_no_measurements_observed",
+  "submission": {
+    "command": [
+      "sbatch",
+      "--parsable",
+      "--no-requeue",
+      "--partition=gpu-debug",
+      "--cpus-per-task=1",
+      "--mem=32G",
+      "--time=00:15:00",
+      "--output=/oscar/home/mliu171/reuseinterp-loopvl/runs/logs/%j.out",
+      "--error=/oscar/home/mliu171/reuseinterp-loopvl/runs/logs/%j.err",
+      "--export=REUSE_PROJECT_DIR=/oscar/home/mliu171/reuseinterp-loopvl/experiments/loopvl-poles-pilot-20261017/snapshot,REUSE_ENV_DIR=/oscar/home/mliu171/reuseinterp-loopvl/recovery-cu128-20261016/venv,REUSE_RUN_ROOT=/oscar/home/mliu171/reuseinterp-loopvl/runs,REUSE_CACHE_ROOT=/oscar/home/mliu171/reuseinterp-loopvl/cache,REUSE_LOOPVL_DIR=/oscar/home/mliu171/reuseinterp-loopvl/LoopVL,REUSE_MODEL_DIR=/oscar/home/mliu171/reuseinterp-loopvl/model,REUSE_SITE_ENV=,REUSE_CACHE_READY=1,REUSE_DTYPE=auto,REUSE_MIN_VRAM_GIB=0,REUSE_EXPECTED_SNAPSHOT_SHA256=94b282380e13efc499c530256a9276632732c206826511d970e6d09ffd55584d,REUSE_EXPECTED_BACKEND=f9b50e1e6d928d157b0d1be60e160fedc4f771158bb18fe7926a80d0b9015715",
+      "--wait",
+      "--account=default",
+      "--qos=gpu-debug",
+      "--gres=gpu:nvidia_rtx_a6000:1",
+      "/oscar/home/mliu171/reuseinterp-loopvl/experiments/loopvl-poles-pilot-20261017/snapshot/scripts/slurm/run_gpu.sbatch",
+      "poles-pilot",
+      "--config",
+      "/oscar/home/mliu171/reuseinterp-loopvl/experiments/loopvl-poles-pilot-20261017/snapshot/configs/poles-pilot.yaml"
+    ],
+    "config_hash": "e6d3cff8917994f74d2598231d21183345c7bcc2efd6df30cb7e99ef2bbd4562",
+    "configured_gpu_hour_cap": 30.0,
+    "created_utc": "2026-10-17T16:27:17.059523+00:00",
+    "estimates": {
+      "forwards": 73,
+      "max_gpu_hours": 0.25,
+      "measured_estimates_available": true,
+      "storage_bytes": 300000000
+    },
+    "gate_errors": [],
+    "is_array": false,
+    "kind": "gpu",
+    "num_shards": 1,
+    "reservation_id": "a3cc033c271c40f8b5e5a6deb3c7d619",
+    "run_id": "loopvl-poles-pilot-20261017",
+    "sbatch_returncode": 1,
+    "sbatch_stderr": "sbatch: error: Batch job submission failed: Unable to contact slurm controller (connect failure)",
+    "sbatch_stdout": "",
+    "selected_indices": [
+      0
+    ],
+    "snapshot_sha256": "94b282380e13efc499c530256a9276632732c206826511d970e6d09ffd55584d",
+    "stage": "poles-pilot",
+    "stage_key": "poles-pilot",
+    "study_fingerprint": "b9afb3e5e04fbf4a6560e72909cd5829ca027ac0eda07453d70e47ee37ef9446",
+    "submission_state": "UNKNOWN_RECONCILE_REQUIRED",
+    "tasks": {
+      "0": {
+        "state": "RESERVED"
+      }
+    },
+    "wall_seconds": 900
+  }
+}

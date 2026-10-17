@@ -1,0 +1,3 @@
+7496249|COMPLETED|0:0|607|billing=1,cpu=1,mem=16G,node=1
+7496249.batch|COMPLETED|0:0|607|cpu=1,mem=16G,node=1
+7496249.extern|COMPLETED|0:0|607|billing=1,cpu=1,mem=16G,node=1

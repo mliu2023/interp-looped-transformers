@@ -1,0 +1,5 @@
+claim_id,claim,classification,evidence,denominator_or_estimand,uncertainty
+CLUSTER-1,Prior GPU smoke failed CUDA preflight before model loading,observed_status,raw/preflight_7489067.json; raw/7489067.err; raw/7489067.out,0 model examples,not applicable
+CLUSTER-2,Saved GPU-hour usage includes the failed smoke,resource_accounting,raw/scheduler_ledger.json; raw/7489067.sacct.txt,0.004722222222222222,saved accounting only; live reconciliation required
+CLUSTER-3,Targeted CPU engineering tests passed,engineering_check,tests.log; tests_summary.json,49 tests,no model-validity inference
+CLUSTER-4,CPU recovery submission returned no job ID,observed_status,recovery_submission.json,1 submission attempt; submission_timeout_unknown,acceptance by Slurm unknown

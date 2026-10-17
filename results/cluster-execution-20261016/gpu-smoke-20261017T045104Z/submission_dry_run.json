@@ -1,0 +1,16 @@
+{
+  "command": "sbatch --parsable --no-requeue --partition=gpu-debug --cpus-per-task=8 --mem=32G --time=01:00:00 --output=/oscar/home/mliu171/reuseinterp-loopvl/runs/logs/%j.out --error=/oscar/home/mliu171/reuseinterp-loopvl/runs/logs/%j.err --export=REUSE_PROJECT_DIR=/oscar/home/mliu171/reuseinterp-loopvl/recovery-cu128-20261016/snapshot,REUSE_ENV_DIR=/oscar/home/mliu171/reuseinterp-loopvl/recovery-cu128-20261016/venv,REUSE_RUN_ROOT=/oscar/home/mliu171/reuseinterp-loopvl/runs,REUSE_CACHE_ROOT=/oscar/home/mliu171/reuseinterp-loopvl/cache,REUSE_LOOPVL_DIR=/oscar/home/mliu171/reuseinterp-loopvl/LoopVL,REUSE_MODEL_DIR=/oscar/home/mliu171/reuseinterp-loopvl/model,REUSE_SITE_ENV=,REUSE_CACHE_READY=1,REUSE_DTYPE=auto,REUSE_MIN_VRAM_GIB=0,REUSE_EXPECTED_SNAPSHOT_SHA256=b7f0f4ae8ff760f8d79f6bce6a702cf14f731e34f5b14c98429b53103fd779ec,REUSE_EXPECTED_BACKEND= --account=default --qos=gpu-debug --gres=gpu:nvidia_rtx_a6000:1 /oscar/home/mliu171/reuseinterp-loopvl/recovery-cu128-20261016/snapshot/scripts/slurm/run_gpu.sbatch validate --config /oscar/home/mliu171/reuseinterp-loopvl/recovery-cu128-20261016/snapshot/configs/smoke.yaml",
+  "estimates": {
+    "max_gpu_hours": 1.0,
+    "forwards": "at least 16 examples; repeated official/capture/self/zero/dose; token count measured by pilot",
+    "storage_bytes": 50000000,
+    "measured_estimates_available": true
+  },
+  "budget_before": {
+    "consumed_gpu_hours": 0.004722222222222222,
+    "outstanding_max_gpu_hours": 0.0,
+    "remaining_gpu_hours": 29.995277777777776
+  },
+  "blocked_reasons": [],
+  "dry_run": true
+}

@@ -1,13 +1,23 @@
-# Recurrent neuron transfer study
+# LoopVL recurrent dynamics
 
-This repository implements CPU preparation for the supplied `CODEX_PLAN.md`:
-semantic-description, representation-readout, and causal-use transfer for the
-same physical LoopVL neurons across recurrent invocations. Identical parameters
-are an instrumentation check, never the scientific endpoint.
+The current research direction is [LOOP_DYNAMICS_PLAN.md](LOOP_DYNAMICS_PLAN.md):
+measure how L/H states, Q/K/V geometry, attention routing, neuron populations,
+update subspaces, and effective feedback change across recurrent invocations.
+It separates within-cycle evolution from H updating and visual reinjection.
+Its new instrumentation and `dynamics-*` stages are **planned, not implemented**.
+The machine-readable planning specification is
+[docs/loop_dynamics_spec.json](docs/loop_dynamics_spec.json).
 
-**Current status:** no LoopVL inference, scheduler submission, or model findings.
-Brown SSH was reached but rejected noninteractive authentication. CPU fixtures,
-full deterministic scene data, source audit, and Slurm infrastructure are ready.
+Existing code implements CPU preparation and partial GPU infrastructure for the
+historical `CODEX_PLAN.md` semantic/representation/causal-transfer study. Those
+artifacts remain reproducible; their endpoints do not constrain the new direction.
+Identical parameters are an instrumentation check, never the scientific endpoint.
+
+**Current status:** no successful LoopVL model measurements have been supplied.
+The user submitted Slurm job 7489067, which failed CUDA initialization before model
+loading. [CUDA_RECOVERY.md](docs/CUDA_RECOVERY.md) describes the prepared repair;
+successful GPU validation remains pending. CPU fixtures, full deterministic scene
+data, source audit, and Slurm infrastructure are ready.
 See [PROGRESS.md](PROGRESS.md) for implementation limits and pending work.
 
 To clone this repository directly on Brown and prepare the entire environment,
@@ -72,6 +82,9 @@ site discovery, environment/model staging, immutable snapshots, safe submissions
 measured pilot, independent arrays, accounting, retries and downloading results.
 No partition, account, QoS, driver, storage policy, or GPU capacity was guessed.
 GPU work requires Slurm and CUDA; there is no CPU fallback for model inference.
+The commands below describe the existing transfer workflow, not implementation
+of the new dynamics plan. Its implementation milestones and future CLI contract
+are explicitly marked in [LOOP_DYNAMICS_PLAN.md](LOOP_DYNAMICS_PLAN.md).
 
 Pinned official source: `6c14bed1d62fbecb559d5902459c6093c38da405`.
 Pinned checkpoint: `92aa28bc678f523f8641fdb2f9e5159f614d1c02`.

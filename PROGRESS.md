@@ -1,5 +1,16 @@
 # Progress — 2026-10-16
 
+Planning update — 2026-10-21: the user redirected the scientific goal toward
+changes across recurrent weight reuse. `LOOP_DYNAMICS_PLAN.md` is now the current
+research plan, with machine-readable scope in `docs/loop_dynamics_spec.json`.
+It covers L/H event-resolved updates, Q/K/V and gated attention, signed neuron
+activity/recruitment, held-out full-space update subspaces, next-reuse feedback,
+and a bounded reinjection control. The plan includes CPU fixtures, exact missing
+instrumentation, discovery/confirmation separation, and the shared 30 GPU-hour /
+20 GiB caps. New `dynamics-*` commands are an implementation contract, not runnable
+scripts yet. Historical transfer code/results are preserved. No additional GPU
+job outcome or model result has been supplied since the failed preflight below.
+
 CUDA recovery update: user-supplied evidence shows real Slurm job **7489067**
 failed before model loading on gpu2261: torch 2.12.1+cu130 requires a newer driver
 than the reported CUDA 12.9 driver API. The reported allocation lasted 17 seconds;

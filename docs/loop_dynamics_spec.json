@@ -1,0 +1,87 @@
+{
+  "schema": "reuseinterp.loop_dynamics.planning.v1",
+  "status": "PLAN_NOT_EXECUTABLE",
+  "plan": "LOOP_DYNAMICS_PLAN.md",
+  "date": "2026-10-21",
+  "supersedes_scientific_focus": "semantic-description transfer as the organizing endpoint",
+  "historical_plan_preserved": "CODEX_PLAN.md",
+  "intended_run_id": "loop-dynamics-v1-RUNTIME_VARIANT",
+  "checkpoint_revision": "92aa28bc678f523f8641fdb2f9e5159f614d1c02",
+  "official_source_revision": "6c14bed1d62fbecb559d5902459c6093c38da405",
+  "observed_schedule": ["injection0", "L1", "L2", "L3", "H1", "injection1", "L4", "L5", "L6", "H2"],
+  "primary_forward": {"decode_step": 0, "answer_prefix": [], "use_cache": false},
+  "comparison_groups": {
+    "within_fixed_high": [["L1", "L2"], ["L2", "L3"], ["L4", "L5"], ["L5", "L6"]],
+    "matched_inner_phase": [["L1", "L4"], ["L2", "L5"], ["L3", "L6"]],
+    "composite_boundary": [["L3", "L4"]],
+    "high_bank": [["H1", "H2"]]
+  },
+  "sampling_defaults_pending_pilot": {
+    "seed": 1729,
+    "independent_unit": "whole scene/image family",
+    "controlled_panel": {
+      "source": "assets/scenes-v1.tar.gz",
+      "discovery_source_split": "fit",
+      "confirmation_source_split": "confirmation",
+      "discovery_families": 32,
+      "confirmation_families": 32,
+      "clean_questions_per_family": 4,
+      "clean_examples_total": 256,
+      "paired_edit_discovery_family_cap": 16
+    },
+    "natural_image_panel": {
+      "availability": "NOT_STAGED_OR_VERIFIED",
+      "requires": ["accessible licensed original images", "version and checksums", "reliable question/answer labels", "whole-image-group splits", "remaining resource feasibility"],
+      "discovery_group_cap": 32,
+      "confirmation_group_cap": 32,
+      "questions_per_group_cap": 4,
+      "additional_example_cap": 256,
+      "if_blocked": "complete controlled panel; explicitly leave natural-image generalization untested"
+    },
+    "broad_coverage": {"banks": ["L", "H"], "physical_layers": "all 16 per bank", "attention_heads": "all loaded heads", "mlp_channels": "all-channel reductions and last-prompt products"},
+    "vector_panel_physical_layers": [0, 5, 10, 15],
+    "detailed_panel_heads": [0, 4, 8],
+    "detailed_discovery_example_cap": 16,
+    "detailed_confirmation_example_cap": 16,
+    "detailed_combined_example_cap": 32,
+    "feedback_candidate_cap": 4,
+    "feedback_matched_control_cap": 4,
+    "feedback_confirmation_family_cap": 32,
+    "feedback_confirmation_questions_per_family": 1,
+    "primary_query_role": "last_prompt",
+    "exact_token_ids_and_masks_required": true
+  },
+  "planned_endpoints": [
+    {"id": "routing_change", "measurement": "paired attention-row Jensen-Shannon divergence, base-2 logs, no square root", "range": [0, 1]},
+    {"id": "recruitment_change", "measurement": "1 - intersection(top32_abs_product_s, top32_abs_product_t)/32", "tie_break": "channel index"},
+    {"id": "update_structure", "measurement": "held-out centered update energy captured by discovery-fitted rank-16 PCs; reconstruction, not prediction", "comparisons": ["mean drift", "paired difference versus random subspace", "paired difference versus state PCs", "matched shuffled pairs", "regularized whitening", "replay noise"], "shared_basis_centering": "separate discovery mean per transition", "discovery_basis_adequacy_and_stability_gate_required": true},
+    {"id": "effective_feedback", "measurement": "sign-aligned source-magnitude to next-magnitude finite response", "companions": ["signed J_ii", "below-threshold probability", "sign flips", "same candidate target after matched-control-source edits", "full candidate/control source-target response matrix", "confirmation shams and controls", "realized doses and residual-write norms"], "eligibility_uses": "clean source only; never intervention target outcomes"}
+  ],
+  "secondary_controls": ["second-cycle-only zero reinjection", "self-replaced reinjection", "bounded paired image/question controls", "fixed key-count panel", "key role/position controls", "Q/K/V/gate hybrid diagnostics explicitly noncausal"],
+  "uncertainty": {"family_bootstrap_resamples": 2000, "confidence_level": 0.95, "confirmation_endpoint_test_adjustment": "Holm if tests are performed", "candidate_interval_adjustment_required": true, "trained_model_seed_uncertainty_measured": false},
+  "resources": {
+    "shared_project_gpu_hour_cap": 30,
+    "shared_project_output_gib_cap": 20,
+    "preserve_existing_scheduler_ledger": true,
+    "include_prior_failures_and_retries": true,
+    "incremental_gpu_hour_ceilings_not_estimates": {"validation": 2, "timing_competence": 2, "discovery_observation": 4, "confirmation_observation": 4, "feedback": 8, "reinjection": 2, "retry_reserve": 3},
+    "incremental_gpu_hour_sum": 25,
+    "new_final_output_target_gib": 14,
+    "transient_headroom_target_gib": 4,
+    "subtract_existing_output_usage": true,
+    "initial_num_shards": 4,
+    "initial_concurrency": 1,
+    "gpus_per_shard": 1,
+    "pilot_required_before_arrays": true,
+    "lossless_native_dtype_storage": true,
+    "global_atomic_storage_reservations_required": true
+  },
+  "new_interfaces_all_pending": {
+    "gpu": ["dynamics-validate", "dynamics-pilot", "dynamics-capture", "dynamics-intervene"],
+    "cpu": ["dynamics-merge", "dynamics-analyze", "dynamics-lock", "dynamics-report", "dynamics-verify"],
+    "setup": ["snapshot-study"]
+  },
+  "implementation_milestones": ["M0 CPU metrics and adversarial fixtures", "M1 event and projection instrumentation with loaded parity", "M2 config/CLI/Slurm/gates/storage reservations and fresh snapshot", "M3 measured discovery observation", "M4 causal pilot and independent dynamics protocol lock", "M5 locked confirmation and CPU-recomputable package"],
+  "stop_rule": "one locked confirmation plus declared controls; no significance-driven expansion",
+  "model_results": "NONE_REPORTED"
+}
